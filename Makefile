@@ -2,8 +2,8 @@ CFLAGS = -lm -Wall -Wpedantic -Wextra -O3
 
 all: renderer
 
-renderer: main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexedModel.o
-	gcc $(CFLAGS) main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexedModel.o -o renderer
+renderer: main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o
+	gcc $(CFLAGS) main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o -o renderer
 	chmod +x renderer
 
 main.o: main.c
@@ -33,8 +33,11 @@ display.o: display.c
 list.o: list.c
 	gcc $(CFLAGS) -c list.c
 
-indexedModel.o: indexedModel.c
-	gcc $(CFLAGS) -c indexedModel.c
+indexed_model.o: indexed_model.c
+	gcc $(CFLAGS) -c indexed_model.c
+
+obj_model.o: obj_model.c
+	gcc $(CFLAGS) -c obj_model.c
 
 clean:
-	rm main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexedModel.o renderer
+	rm main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o renderer

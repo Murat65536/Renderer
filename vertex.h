@@ -3,11 +3,11 @@
 #include "vector.h"
 
 typedef struct {
-	vector pos;
-	vector texCoords;
-} vertex;
+	vector_t pos;
+	vector_t tex_coords;
+} vertex_t;
 
-float triangleCrossProduct(vertex a, vertex b, vertex c);
+float triangle_cross_product(vertex_t a, vertex_t b, vertex_t c);
 
-vertex vertexPerspectiveDivide(vertex v);
+vertex_t vertex_perspective_divide(vertex_t v);
 #endif

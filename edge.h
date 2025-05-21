@@ -5,19 +5,19 @@
 
 typedef struct {
 	float x;
-	float xStep;
-	int yStart;
-	int yEnd;
-	float texCoordX;
-	float texCoordXStep;
-	float texCoordY;
-	float texCoordYStep;
-	float oneOverZ;
-	float oneOverZStep;
-} edge;
+	float x_step;
+	int y_start;
+	int y_end;
+	float tex_coord_x;
+	float tex_coord_x_step;
+	float tex_coord_y;
+	float tex_coord_y_step;
+	float one_over_z;
+	float one_over_z_step;
+} edge_t;
 
-edge newEdge(gradients g, vertex minYVert, vertex maxYVert, int minYVertIndex);
+edge_t create_edge(gradients_t g, vertex_t min_y_vert, vertex_t max_y_vert, int min_y_vert_index);
 
-void edgeStep(edge *e);
+void edge_step(edge_t *e);
 
 #endif

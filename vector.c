@@ -1,74 +1,85 @@
 #include "vector.h"
 #include <math.h>
+#include <stdlib.h>
 
-vector vectorAddVector(vector v1, vector v2) {
-	return (vector) {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w};
+vector_t *malloc_vector(vector_t v) {
+	vector_t *r;
+	r = malloc(sizeof(*r));
+	r->x = v.x;
+	r->y = v.y;
+	r->z = v.z;
+	r->w = v.w;
+	return r;
 }
 
-vector vectorAddFloat(vector v, float f) {
-	return (vector) {v.x + f, v.y + f, v.z + f, v.w + f};
+vector_t vector_add_vector(vector_t v1, vector_t v2) {
+	return (vector_t) {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w};
 }
 
-vector vectorSubtractVector(vector v1, vector v2) {
-	return (vector) {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w};
+vector_t vector_add_float(vector_t v, float f) {
+	return (vector_t) {v.x + f, v.y + f, v.z + f, v.w + f};
 }
 
-vector vectorSubtractFloat(vector v, float f) {
-	return (vector) {v.x - f, v.y - f, v.z - f, v.w - f};
+vector_t vector_subtract_vector(vector_t v1, vector_t v2) {
+	return (vector_t) {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w};
 }
 
-vector vectorMultiplyVector(vector v1, vector v2) {
-	return (vector) {v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w};
+vector_t vector_subtract_float(vector_t v, float f) {
+	return (vector_t) {v.x - f, v.y - f, v.z - f, v.w - f};
 }
 
-vector vectorMultiplyFloat(vector v, float f) {
-	return (vector) {v.x * f, v.y * f, v.z * f, v.w * f};
+vector_t vector_multiply_vector(vector_t v1, vector_t v2) {
+	return (vector_t) {v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w};
 }
 
-vector vectorDivideVector(vector v1, vector v2) {
-	return (vector) {v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w};
+vector_t vector_multiply_float(vector_t v, float f) {
+	return (vector_t) {v.x * f, v.y * f, v.z * f, v.w * f};
 }
 
-vector vectorDivideFloat(vector v, float f) {
-	return (vector) {v.x / f, v.y / f, v.z / f, v.w / f};
+vector_t vector_divide_vector(vector_t v1, vector_t v2) {
+	return (vector_t) {v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w};
 }
 
-vector vectorAbs(vector v) {
-	return (vector) {fabsf(v.x), fabsf(v.y), fabsf(v.z), fabsf(v.w)};
+vector_t vector_divide_float(vector_t v, float f) {
+	return (vector_t) {v.x / f, v.y / f, v.z / f, v.w / f};
 }
 
-float vectorLength(vector v) {
+vector_t vector_abs(vector_t v) {
+	return (vector_t) {fabsf(v.x), fabsf(v.y), fabsf(v.z), fabsf(v.w)};
+}
+
+float vector_length(vector_t v) {
 	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
-float vectorMax(vector v) {
+float vector_max(vector_t v) {
 	return fmaxf(fmaxf(v.x, v.y), fmaxf(v.z, v.w));
 }
 
-float vectorDotProduct(vector v1, vector v2) {
+float vector_dot_product(vector_t v1, vector_t v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
-vector vectorCrossProduct(vector v1, vector v2) {
+vector_t vector_cross_product(vector_t v1, vector_t v2) {
 	float x = v1.y * v2.z - v1.z * v2.y;
 	float y = v1.z * v2.x - v1.x * v2.z;
 	float z = v1.x * v2.y - v1.y * v2.x;
 
-	return (vector) {x, y, z, 0};
+	return (vector_t) {x, y, z, 0};
 }
 
-vector vectorNormalized(vector v) {
-	float length = vectorLength(v);
-	return (vector) {v.x / length, v.y / length, v.z / length, v.w / length};
+vector_t vector_normalized(vector_t v) {
+	float length = vector_length(v);
+	return (vector_t) {v.x / length, v.y / length, v.z / length, v.w / length};
 }
 
-vector vectorRotate(vector v, vector axis, float angle) {
+vector_t vector_rotate(vector_t v, vector_t axis, float angle) {
 	float sine = sinf(-angle);
 	float cosine = cosf(-angle);
 
-	return vectorAddVector(vectorCrossProduct(v, vectorMultiplyFloat(axis, sine)), vectorAddVector(vectorMultiplyFloat(v, cosine), vectorMultiplyFloat(axis, vectorDotProduct(v, vectorMultiplyFloat(axis, 1 - cosine)))));
+	return vector_add_vector(vector_cross_product(v, vector_multiply_float(axis, sine)), vector_add_vector(vector_multiply_float(v, cosine), vector_multiply_float(axis, vector_dot_product(v, vector_multiply_float(axis, 1 - cosine)))));
 }
 
-vector vectorLerp(vector v, vector dest, float lerpFactor) {
-	return vectorAddVector(vectorMultiplyFloat(vectorSubtractVector(dest, v), lerpFactor), v);
+vector_t vector_lerp(vector_t v, vector_t dest, float lerp_factor) {
+	return vector_add_vector(vector_multiply_float(vector_subtract_vector(dest, v), lerp_factor), v);
 }

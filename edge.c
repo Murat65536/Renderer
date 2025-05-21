@@ -2,34 +2,34 @@
 #include <stdio.h>
 #include <math.h>
 
-edge newEdge(gradients g, vertex minYVert, vertex maxYVert, int minYVertIndex) {
-	int yStart = (int)ceil(minYVert.pos.y);
-	int yEnd = (int)ceil(maxYVert.pos.y);
+edge_t create_edge(gradients_t g, vertex_t min_y_vert, vertex_t max_y_vert, int min_y_vert_index) {
+	int y_start = (int)ceil(min_y_vert.pos.y);
+	int y_end = (int)ceil(max_y_vert.pos.y);
 
-	float yDist = maxYVert.pos.y - minYVert.pos.y;
-	float xDist = maxYVert.pos.x - minYVert.pos.x;
+	float y_dist = max_y_vert.pos.y - min_y_vert.pos.y;
+	float x_dist = max_y_vert.pos.x - min_y_vert.pos.x;
 
-	float yPrestep = yStart - minYVert.pos.y;
-	float xStep = xDist / yDist;
-	float x = minYVert.pos.x + yPrestep * xStep;
-	float xPrestep = x - minYVert.pos.x;
-	return (edge) {
+	float y_prestep = y_start - min_y_vert.pos.y;
+	float x_step = x_dist / y_dist;
+	float x = min_y_vert.pos.x + y_prestep * x_step;
+	float x_prestep = x - min_y_vert.pos.x;
+	return (edge_t) {
 		x,
-		xStep,
-		yStart,
-		yEnd,
-		g.texCoordX[minYVertIndex] + g.texCoordXXStep * xPrestep + g.texCoordXYStep * yPrestep,
-		g.texCoordXYStep + g.texCoordXXStep * xStep,
-		g.texCoordY[minYVertIndex] + g.texCoordYXStep * xPrestep + g.texCoordYYStep * yPrestep,
-		g.texCoordYYStep + g.texCoordYXStep * xStep,
-		g.oneOverZ[minYVertIndex] + g.oneOverZXStep * xPrestep + g.oneOverZYStep * yPrestep,
-		g.oneOverZYStep + g.oneOverZXStep * xStep
+		x_step,
+		y_start,
+		y_end,
+		g.tex_coord_x[min_y_vert_index] + g.tex_coord_xx_step * x_prestep + g.tex_coord_xy_step * y_prestep,
+		g.tex_coord_xy_step + g.tex_coord_xx_step * x_step,
+		g.tex_coord_y[min_y_vert_index] + g.tex_coord_yx_step * x_prestep + g.tex_coord_yy_step * y_prestep,
+		g.tex_coord_yy_step + g.tex_coord_yx_step * x_step,
+		g.one_over_z[min_y_vert_index] + g.one_over_zx_step * x_prestep + g.one_over_zy_step * y_prestep,
+		g.one_over_zy_step + g.one_over_zx_step * x_step
 	};
 }
 
-void edgeStep(edge *e) {
-	e->x += e->xStep;
-	e->texCoordX += e->texCoordXStep;
-	e->texCoordY += e->texCoordYStep;
-	e->oneOverZ += e->oneOverZStep;
+void edge_step(edge_t *e) {
+	e->x += e->x_step;
+	e->tex_coord_x += e->tex_coord_x_step;
+	e->tex_coord_y += e->tex_coord_y_step;
+	e->one_over_z += e->one_over_z_step;
 }

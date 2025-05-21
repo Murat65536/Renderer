@@ -8,6 +8,6 @@ typedef struct {
 	list normals;
 	list tangents;
 	list indices;
-} indexedModel;
+} indexed_model_t;
 
 #endif

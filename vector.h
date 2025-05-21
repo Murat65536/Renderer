@@ -6,38 +6,40 @@ typedef struct {
 	float y;
 	float z;
 	float w;
-} vector;
+} vector_t;
 
-vector vectorAddVector(vector v1, vector v2);
+vector_t *malloc_vector(vector_t v);
 
-vector vectorAddFloat(vector v, float f);
+vector_t vector_add_vector(vector_t v1, vector_t v2);
 
-vector vectorSubtractVector(vector v1, vector v2);
+vector_t vector_add_float(vector_t v, float f);
 
-vector vectorSubtractFloat(vector v, float f);
+vector_t vector_subtract_vector(vector_t v1, vector_t v2);
 
-vector vectorMultiplyVector(vector v1, vector v2);
+vector_t vector_subtract_float(vector_t v, float f);
 
-vector vectorMultiplyFloat(vector v, float f);
+vector_t vector_multiply_vector(vector_t v1, vector_t v2);
 
-vector vectorDivideVector(vector v1, vector v2);
+vector_t vector_multiply_float(vector_t v, float f);
 
-vector vectorDivideFloat(vector v, float f);
+vector_t vector_divide_vector(vector_t v1, vector_t v2);
 
-vector vectorAbs(vector v);
+vector_t vector_divide_float(vector_t v, float f);
 
-float vectorLength(vector v);
+vector_t vector_abs(vector_t v);
 
-float vectorMax(vector v);
+float vector_length(vector_t v);
 
-float vectorDotProduct(vector v1, vector v2);
+float vector_max(vector_t v);
 
-vector vectorCrossProduct(vector v1, vector v2);
+float vector_dot_product(vector_t v1, vector_t v2);
 
-vector vectorNormalized(vector v);
+vector_t vector_cross_product(vector_t v1, vector_t v2);
 
-vector vectorRotate(vector v, vector axis, float angle);
+vector_t vector_normalized(vector_t v);
 
-vector vectorLerp(vector v, vector dest, float lerpFactor);
+vector_t vector_rotate(vector_t v, vector_t axis, float angle);
+
+vector_t vector_lerp(vector_t v, vector_t dest, float lerp_factor);
 
 #endif

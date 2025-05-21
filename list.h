@@ -1,10 +1,11 @@
 #ifndef LIST_H_
 #define LIST_H_
+#include <stddef.h>
 
 typedef struct {
 	void **array;
-	unsigned int length;
-	unsigned int capacity;
+	size_t length;
+	size_t capacity;
 } list;
 
 list newList();

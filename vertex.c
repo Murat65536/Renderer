@@ -1,6 +1,6 @@
 #include "vertex.h"
 
-float triangleCrossProduct(vertex a, vertex b, vertex c) {
+float triangle_cross_product(vertex_t a, vertex_t b, vertex_t c) {
 	const float x1 = b.pos.x - a.pos.x;
 	const float y1 = b.pos.y - a.pos.y;
 
@@ -10,6 +10,6 @@ float triangleCrossProduct(vertex a, vertex b, vertex c) {
 	return (x1 * y2 - x2 * y1);
 }
 
-vertex vertexPerspectiveDivide(vertex v) {
-	return (vertex) {{v.pos.x / v.pos.w, v.pos.y / v.pos.w, v.pos.z / v.pos.w, v.pos.w}, v.texCoords};
+vertex_t vertex_perspective_divide(vertex_t v) {
+	return (vertex_t) {{v.pos.x / v.pos.w, v.pos.y / v.pos.w, v.pos.z / v.pos.w, v.pos.w}, v.tex_coords};
 }
