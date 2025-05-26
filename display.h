@@ -3,6 +3,8 @@
 #include "vertex.h"
 #include "edge.h"
 #include "matrix.h"
+#include "mesh.h"
+#include "bitmap.h"
 #include <stdbool.h>
 
 void reset_terminal_mode();
@@ -23,16 +25,16 @@ void render();
 
 void clear();
 
-unsigned int get_rgb(unsigned char r, unsigned char g, unsigned char b);
+void plot_point(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b);
 
-void plot_point(unsigned int x, unsigned int y, unsigned int color);
+void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture);
 
-void draw_scan_line(edge_t *left, edge_t *right, int j);
+void scan_edges(edge_t *a, edge_t *b, bool side, bitmap_t *texture);
 
-void scan_edges(edge_t *a, edge_t *b, bool side);
+void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, bool side, bitmap_t *texture);
 
-void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, bool side);
+void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture);
 
-void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3);
+void draw_mesh(mesh_t *mesh, matrix_t transform, bitmap_t *texture);
 
 #endif

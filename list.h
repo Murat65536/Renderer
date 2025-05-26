@@ -6,10 +6,13 @@ typedef struct {
 	void **array;
 	size_t length;
 	size_t capacity;
-} list;
+	size_t element_size;
+} list_t;
 
-list newList();
+list_t *create_list(size_t element_size);
 
-void listAdd(list *l, void *value);
+void list_add(list_t *list, void *value);
+
+void free_list(list_t *list);
 
 #endif

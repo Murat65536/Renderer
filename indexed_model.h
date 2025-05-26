@@ -3,11 +3,17 @@
 #include "list.h"
 
 typedef struct {
-	list positions;
-	list texCoords;
-	list normals;
-	list tangents;
-	list indices;
+	list_t *positions;
+	list_t *tex_coords;
+	list_t *normals;
+	list_t *tangents;
+	list_t *indices;
 } indexed_model_t;
+
+indexed_model_t *create_indexed_model();
+
+void calc_normals(indexed_model_t *indexed_model);
+
+void calc_tangents(indexed_model_t *indexed_model);
 
 #endif

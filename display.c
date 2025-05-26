@@ -1,6 +1,7 @@
 #include "display.h"
 #include "matrix.h"
 #include "bitmap.h"
+#include "mesh.h"
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <unistd.h>
@@ -14,7 +15,6 @@
 #include <wchar.h>
 #include <locale.h>
 
-#define RAND_MAX 255
 #define FOV 70.f
 
 int columns, rows;
@@ -26,7 +26,6 @@ struct termios orig_termios;
 
 matrix_t projection;
 
-bitmap_t texture;
 
 bool update = true;
 
@@ -35,7 +34,6 @@ void reset_terminal_mode() {
 	tcsetattr(0, TCSANOW, &orig_termios);
 	free(buffer);
 	free(clear_buffer);
-	free(texture.colors);
 }
 
 void queue_res_update(int s) {
@@ -69,21 +67,13 @@ void init_display() {
 	res_update();
 	signal(SIGWINCH, queue_res_update);
 	
-	printf("\x1b[?25l");
+	//printf("\x1b[?25l");
 	
-	texture = create_bitmap(32, 32);
-	for (size_t j = 0; j < texture.height; j++) {
-		for (size_t i = 0; i < texture.width; i++) {
-			bitmap_set_pixel(&texture, i, j, 255, random(), random(), random());
-		}
-	}
- 
-
 	struct termios new_termios;
 	tcgetattr(0, &orig_termios);
 	memcpy(&new_termios, &orig_termios, sizeof(new_termios));
 	atexit(reset_terminal_mode);
-	cfmakeraw(&new_termios);
+	//cfmakeraw(&new_termios);
 	tcsetattr(0, TCSANOW, &new_termios);
 }
 
@@ -118,26 +108,32 @@ void clear() {
 	wcsncpy(buffer, clear_buffer, rows * columns * 37 + 5);
 }
 
-unsigned int get_rgb(unsigned char r, unsigned char g, unsigned char b) {
-	return (b << 16) | (g << 8) | r;
-}
-
-void plot_point(unsigned int x, unsigned int y, unsigned int color) {
+void plot_point(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b) {
 	for (char i = 0; i < 3; i++) {
 		for (char digit = 0; digit < 3; digit++) {
 			char offset;
+			unsigned char color;
 			if (y % 2 == 0) {
 				offset = 9;
 			}
 			else {
 				offset = 26;
 			}
-			buffer[(y / 2 * columns + x) * 37 + 4 * i + offset - digit] = 48 + ((color >> 8 * i) & 0xFF) / (int)pow(10, digit) % 10;
+			if (digit == 0) {
+				color = r;
+			}
+			else if (digit == 1) {
+				color = g;
+			}
+			else if (digit == 2) {
+				color = b;
+			}
+			buffer[(y / 2 * columns + x) * 37 + 4 * i + offset - digit] = 48 + color / (int)pow(10, digit) % 10;
 		}
 	}
 }
 
-void draw_scan_line(edge_t *left, edge_t *right, int j) {
+void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
 	int x_min = (int)ceil(left->x);
 	int x_max = (int)ceil(right->x);
 
@@ -154,9 +150,10 @@ void draw_scan_line(edge_t *left, edge_t *right, int j) {
 
 	for (int i = x_min; i < x_max; i++) {
 		float z = 1.f / one_over_z;
-		int src_x = (int)((tex_coord_x * z) * (texture.width - 1) + 0.5f);
-		int src_y = (int)((tex_coord_y * z) * (texture.height - 1) + 0.5f);
-		plot_point(i, j, texture.colors[src_y * texture.width + src_x]);
+		unsigned int src_x = (unsigned int)fmax((tex_coord_x * z) * (texture->width - 1) + 0.5f, 0.f);
+		unsigned int src_y = (unsigned int)fmax((tex_coord_y * z) * (texture->height - 1) + 0.5f, 0.f);
+		//fprintf(stderr, "S: %f\n", left->tex_coord_y);
+		plot_point(i, j, texture->colors[(src_y * texture->width + src_x) * 3], texture->colors[(src_y * texture->width + src_x) * 3 + 1], texture->colors[(src_y * texture->width + src_x) * 3 + 2]);
 	
 		one_over_z += one_over_zx_step;
 		tex_coord_x += tex_coord_xx_step;
@@ -164,7 +161,7 @@ void draw_scan_line(edge_t *left, edge_t *right, int j) {
 	}
 }
 
-void scan_edges(edge_t *a, edge_t *b, bool side) {
+void scan_edges(edge_t *a, edge_t *b, bool side, bitmap_t *texture) {
 	edge_t *left;
 	edge_t *right;
 
@@ -181,28 +178,33 @@ void scan_edges(edge_t *a, edge_t *b, bool side) {
 	int y_end = b->y_end;
 
 	for (int j = y_start; j < y_end; j++) {
-		draw_scan_line(left, right, j);
+		draw_scan_line(left, right, j, texture);
 		edge_step(left);
 		edge_step(right);
 	}
 }
 
-void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, bool side) {
+void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, bool side, bitmap_t *texture) {
 	gradients_t g = create_gradient(min_y_vert, mid_y_vert, max_y_vert);
 	edge_t top_to_bottom = create_edge(g, min_y_vert, max_y_vert, 0);
 	edge_t top_to_middle = create_edge(g, min_y_vert, mid_y_vert, 0);
 	edge_t middle_to_bottom = create_edge(g, mid_y_vert, max_y_vert, 1);
-	
-	scan_edges(&top_to_bottom, &top_to_middle, side);
-	scan_edges(&top_to_bottom, &middle_to_bottom, side);
+
+	//fprintf(stderr, "Edge: %f\n", top_to_bottom.tex_coord_y);
+	scan_edges(&top_to_bottom, &top_to_middle, side, texture);
+	scan_edges(&top_to_bottom, &middle_to_bottom, side, texture);
 }
 
 
-void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3) {
+void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
 	matrix_t screen_space = init_screen_space_transform(columns * 0.5f, rows);
 	vertex_t min_y_vert = vertex_perspective_divide(vertex_transform(v1, screen_space));
 	vertex_t mid_y_vert = vertex_perspective_divide(vertex_transform(v2, screen_space));
 	vertex_t max_y_vert = vertex_perspective_divide(vertex_transform(v3, screen_space));
+
+	if (triangle_cross_product(min_y_vert, max_y_vert, mid_y_vert) >= 0) {
+		return;
+	}
 
 	if (max_y_vert.pos.y < mid_y_vert.pos.y) {
 		vertex_t temp = max_y_vert;
@@ -222,5 +224,18 @@ void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3) {
 		mid_y_vert = temp;
 	}
 
-	scan_triangle(min_y_vert, mid_y_vert, max_y_vert, triangle_cross_product(min_y_vert, max_y_vert, mid_y_vert) >= 0);
+	scan_triangle(min_y_vert, mid_y_vert, max_y_vert, triangle_cross_product(min_y_vert, max_y_vert, mid_y_vert) >= 0, texture);
+}
+
+void draw_mesh(mesh_t *mesh, matrix_t transform, bitmap_t *texture) {
+	for (size_t i = 0; i < mesh->indices->length; i+=3) {
+		//fprintf(stderr, "Index: %lu, Vert1: %f,%f,%f,%f\n", i, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.x, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.y, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.z, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.w);
+		//fprintf(stderr, "Index: %lu, Vert2: %f,%f,%f,%f\n", i + 1, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.x, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.y, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.z, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.w);
+		//fprintf(stderr, "Index: %lu, Vert3: %f,%f,%f,%f\n", i + 2, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.x, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.y, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.z, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.w);
+		fill_triangle(
+				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], transform),
+				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]], transform),
+				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]], transform),
+				texture);
+	}
 }

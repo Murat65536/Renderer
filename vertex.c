@@ -1,4 +1,12 @@
 #include "vertex.h"
+#include <stdlib.h>
+
+vertex_t *create_vertex(vector_t pos, vector_t tex_coords) {
+	vertex_t *vertex = malloc(sizeof(vertex_t));
+	vertex->pos = (vector_t) {pos.x, pos.y, pos.z, pos.w};
+	vertex->tex_coords = (vector_t) {tex_coords.x, tex_coords.y, tex_coords.z, tex_coords.w};
+	return vertex;
+}
 
 float triangle_cross_product(vertex_t a, vertex_t b, vertex_t c) {
 	const float x1 = b.pos.x - a.pos.x;

@@ -10,15 +10,19 @@ typedef struct {
 } obj_index_t;
 
 typedef struct {
-	list positions;
-	list tex_coords;
-	list normals;
-	list indices;
+	list_t *positions;
+	list_t *tex_coords;
+	list_t *normals;
+	list_t *indices;
 	bool has_tex_coords;
 	bool has_normals;
 } obj_model_t;
 
 obj_model_t *create_obj_model(char *filename);
+
+bool compare_size_t(void *s1, void *s2);
+
+bool compare_obj_index_t(void *o1, void *o2);
 
 indexed_model_t *to_indexed_model(obj_model_t *model);
 

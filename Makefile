@@ -1,9 +1,9 @@
-CFLAGS = -lm -Wall -Wpedantic -Wextra -O3
+CFLAGS = -lm -Wall -Wpedantic -Wextra -g3
 
 all: renderer
 
-renderer: main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o
-	gcc $(CFLAGS) main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o -o renderer
+renderer: main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o
+	gcc $(CFLAGS) main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o -o renderer
 	chmod +x renderer
 
 main.o: main.c
@@ -39,5 +39,14 @@ indexed_model.o: indexed_model.c
 obj_model.o: obj_model.c
 	gcc $(CFLAGS) -c obj_model.c
 
+hashmap.o: hashmap.c
+	gcc $(CFLAGS) -c hashmap.c
+
+lodepng.o: lodepng.c
+	gcc $(CFLAGS) -c lodepng.c
+
+mesh.o: mesh.c
+	gcc $(CFLAGS) -c mesh.c
+
 clean:
-	rm main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o renderer
+	rm main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o renderer
