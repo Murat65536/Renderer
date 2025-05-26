@@ -67,13 +67,13 @@ void init_display() {
 	res_update();
 	signal(SIGWINCH, queue_res_update);
 	
-	//printf("\x1b[?25l");
+	printf("\x1b[?25l");
 	
 	struct termios new_termios;
 	tcgetattr(0, &orig_termios);
 	memcpy(&new_termios, &orig_termios, sizeof(new_termios));
 	atexit(reset_terminal_mode);
-	//cfmakeraw(&new_termios);
+	cfmakeraw(&new_termios);
 	tcsetattr(0, TCSANOW, &new_termios);
 }
 
