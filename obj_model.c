@@ -16,51 +16,49 @@ obj_model_t *create_obj_model(char *filename) {
 	model->has_normals = false;
 
 	FILE *fp = fopen(filename, "r");
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
+	char line[256];
 
-	while ((read = getline(&line, &len, fp)) != -1) {
-		list_t *split_list = create_list(sizeof(char*));
+	while (fgets(line, sizeof(line), fp)) {
+		char *split_list[100];
 		char *str = strdup(line);
 		char *split = "";
+		size_t index = 0;
 		while ((split = strsep(&str, " "))) {
 			if (strlen(split) > 0) {
-				list_add(split_list, split);
+				split_list[index++] = split;
 			}
 		}
-		if (split_list->length == 0 || (strlen((char *)split_list->array[0]) >= 1 && strcmp((char *)split_list->array[0], "#") == 0)) {
+		if (index == 0 || (strlen((char *)split_list[0]) >= 1 && strcmp((char *)split_list[0], "#") == 0)) {
 			continue;
 		}
-		else if (strlen((char *)split_list->array[0]) == 1 && strcmp((char *)split_list->array[0], "v") == 0) {
+		else if (strlen((char *)split_list[0]) == 1 && strcmp((char *)split_list[0], "v") == 0) {
 			vector_t *v = malloc(sizeof(vector_t));
-			v->x = atof((char *)split_list->array[1]);
-			v->y = atof((char *)split_list->array[2]);
-			v->z = atof((char *)split_list->array[3]);
+			v->x = atof((char *)split_list[1]);
+			v->y = atof((char *)split_list[2]);
+			v->z = atof((char *)split_list[3]);
 			v->w = 1.f;
 			list_add(model->positions, v);
 		}
-		else if (strlen((char *)split_list->array[0]) == 2 && strcmp((char *)split_list->array[0], "vt") == 0) {
+		else if (strlen((char *)split_list[0]) == 2 && strcmp((char *)split_list[0], "vt") == 0) {
 			vector_t *v = malloc(sizeof(vector_t));
-			v->x = atof((char *)split_list->array[1]);
-			v->y = 1.f - atof((char *)split_list->array[2]);
+			v->x = atof((char *)split_list[1]);
+			v->y = 1.f - atof((char *)split_list[2]);
 			v->z = 0.f;
 			v->w = 0.f;
 			list_add(model->tex_coords, v);
 		}
-		else if (strlen((char *)split_list->array[0]) == 2 && strcmp((char *)split_list->array[0], "vn") == 0) {
-			vector_t *v = malloc(sizeof(vector_t));
-			v->x = atof((char *)split_list->array[1]);
-			v->y = atof((char *)split_list->array[2]);
-			v->z = atof((char *)split_list->array[3]);
-			v->w = 0.f;
-			list_add(model->normals, v);
+		else if (strlen((char *)split_list[0]) == 2 && strcmp((char *)split_list[0], "vn") == 0) {
+			vector_t v = (vector_t) {atof((char *)split_list[1]), atof((char *)split_list[2]), atof((char *)split_list[3]), 0.f};
+			list_add(model->normals, &v);
 		}
-		else if (strlen((char *)split_list->array[0]) == 1 && strcmp((char *)split_list->array[0], "f") == 0) {
-			for (size_t i = 0; i < split_list->length - 3; i++) {
-				list_add(model->indices, parse_obj_index(model, (char *)split_list->array[i + 1]));
-				list_add(model->indices, parse_obj_index(model, (char *)split_list->array[i + 2]));
-				list_add(model->indices, parse_obj_index(model, (char *)split_list->array[i + 3]));
+		else if (strlen((char *)split_list[0]) == 1 && strcmp((char *)split_list[0], "f") == 0) {
+			for (size_t i = 0; i < index - 3; i++) {
+				//fprintf(stderr, "idk 1 bro: %s\n", (char *)split_list[1]);
+				list_add(model->indices, parse_obj_index(model, split_list[1]));
+				//fprintf(stderr, "idk 2 bro: %s\n", (char *)split_list->array[i + 1]);
+				list_add(model->indices, parse_obj_index(model, (char *)split_list[i + 2]));
+				//fprintf(stderr, "idk 3 bro: %s\n", (char *)split_list->array[i + 1]);
+				list_add(model->indices, parse_obj_index(model, (char *)split_list[i + 3]));
 			}
 		}
 	}
@@ -85,30 +83,23 @@ indexed_model_t *to_indexed_model(obj_model_t *model) {
 	for (size_t i = 0; i < model->indices->length; i++) {
 		obj_index_t *current_index = (obj_index_t *)model->indices->array[i];
 
-		vector_t *current_position = (vector_t *)model->positions->array[current_index->vertex_index];
-		vector_t *current_tex_coord;
-		vector_t *current_normal;
+		vector_t current_position = *(vector_t *)model->positions->array[current_index->vertex_index];
+		vector_t current_tex_coord;
+		vector_t current_normal;
 
 		if (model->has_tex_coords) {
-			current_tex_coord = (vector_t *)model->tex_coords->array[current_index->tex_coord_index];
+			current_tex_coord = *(vector_t *)model->tex_coords->array[current_index->tex_coord_index];
 		}
 		else {
-			current_tex_coord = malloc(sizeof(*current_tex_coord));
-			current_tex_coord->x = 0.f;
-			current_tex_coord->y = 0.f;
-			current_tex_coord->z = 0.f;
-			current_tex_coord->w = 0.f;
+			current_tex_coord = (vector_t) {0.f, 0.f, 0.f, 0.f};
 		}
 
 		if (model->has_normals) {
-			current_normal = (vector_t *)model->normals->array[current_index->normal_index];
+			//fprintf(stderr, "Index: %lu\n", current_index->normal_index);
+			current_normal = *(vector_t *)model->normals->array[current_index->normal_index];
 		}
 		else {
-			current_normal = malloc(sizeof(*current_normal));
-			current_normal->x = 0.f;
-			current_normal->y = 0.f;
-			current_normal->z = 0.f;
-			current_normal->w = 0.f;
+			current_normal = (vector_t) {0.f, 0.f, 0.f, 0.f};
 
 		}
 
@@ -118,10 +109,10 @@ indexed_model_t *to_indexed_model(obj_model_t *model) {
 			model_vertex_index = result->positions->length;
 			hashmap_add(result_index_map, current_index, &model_vertex_index);
 
-			list_add(result->positions, current_position);
-			list_add(result->tex_coords, current_tex_coord);
+			list_add(result->positions, &current_position);
+			list_add(result->tex_coords, &current_tex_coord);
 			if (model->has_normals) {
-				list_add(result->normals, current_normal);
+				list_add(result->normals, &current_normal);
 			}
 		}
 		else {
@@ -134,10 +125,15 @@ indexed_model_t *to_indexed_model(obj_model_t *model) {
 			normal_model_index = normal_model->positions->length;
 			hashmap_add(normal_index_map, &current_index->vertex_index, &normal_model_index);
 
-			list_add(normal_model->positions, current_position);
-			list_add(normal_model->tex_coords, current_tex_coord);
-			list_add(normal_model->normals, current_normal);
-			list_add(normal_model->tangents, calloc(4, sizeof(vector_t*)));
+			list_add(normal_model->positions, &current_position);
+			list_add(normal_model->tex_coords, &current_tex_coord);
+			list_add(normal_model->normals, &current_normal);
+			vector_t *v = malloc(sizeof(vector_t));
+			v->x = 0.f;
+			v->y = 0.f;
+			v->z = 0.f;
+			v->w = 0.f;
+			list_add(normal_model->tangents, v);
 		}
 		else {
 			normal_model_index = *normal_model_index_ptr;
@@ -162,25 +158,27 @@ indexed_model_t *to_indexed_model(obj_model_t *model) {
 }
 
 obj_index_t *parse_obj_index(obj_model_t *model, char *token) {
-	list_t *split_list = create_list(sizeof(char*));
+	char *split_list[3];
 	char *str = strdup(token);
-	char *split;
+	char *split = "";
+	int i = -1;
 	while ((split = strsep(&str, "/"))) {
 		if (strlen(split) > 0) {
-			list_add(split_list, split);
+			split_list[++i] = split;
 		}
 	}
 	obj_index_t *result = malloc(sizeof(obj_index_t));
-	result->vertex_index = atoll((char *)split_list->array[0]) - 1;
+	//fprintf(stderr, "Test: %s\n", split_list[0]);
+	result->vertex_index = atoll(split_list[0]) - 1;
 
-	if (split_list->length > 1) {
-		if (strlen((char *)split_list->array[1]) > 0) {
+	if (i > 0) {
+		if (strlen(split_list[i]) > 0) {
 			model->has_tex_coords = true;
-			result->tex_coord_index = atoll((char *)split_list->array[1]) - 1;
+			result->tex_coord_index = atoll(split_list[1]) - 1;
 		}
-		if (split_list->length > 2) {
+		if (i > 1) {
 			model->has_normals = true;
-			result->normal_index = atoll((char *)split_list->array[2]) - 1;
+			result->normal_index = atoll(split_list[2]) - 1;
 		}
 	}
 

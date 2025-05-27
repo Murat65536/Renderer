@@ -12,6 +12,9 @@ typedef struct {
 	float tex_coord_yy_step;
 	float one_over_zx_step;
 	float one_over_zy_step;
+	float depth[3];
+	float depth_x_step;
+	float depth_y_step;
 } gradients_t;
 
 float gradient_calc_x_step(float *values, vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, float one_over_dx);

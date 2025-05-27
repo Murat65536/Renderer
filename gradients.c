@@ -10,9 +10,6 @@ float gradient_calc_y_step(float *values, vertex_t min_y_vert, vertex_t mid_y_ve
 }
 
 gradients_t create_gradient(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert) {	
-	//fprintf(stderr, "Verts: %f, %f, %f, %f\n", min_y_vert.pos.x, min_y_vert.pos.y, min_y_vert.pos.z, min_y_vert.pos.w);
-	//fprintf(stderr, "Verts: %f, %f, %f, %f\n", mid_y_vert.pos.x, mid_y_vert.pos.y, mid_y_vert.pos.z, mid_y_vert.pos.w);
-	//fprintf(stderr, "Verts: %f, %f, %f, %f\n", max_y_vert.pos.x, max_y_vert.pos.y, max_y_vert.pos.z, max_y_vert.pos.w);
 	float one_over_dx = 1.f / (((mid_y_vert.pos.x - max_y_vert.pos.x) *
 							  (min_y_vert.pos.y - max_y_vert.pos.y)) -
 							 ((min_y_vert.pos.x - max_y_vert.pos.x) *
@@ -35,5 +32,10 @@ gradients_t create_gradient(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t m
 	g.tex_coord_yy_step = gradient_calc_y_step(g.tex_coord_y, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
 	g.one_over_zx_step = gradient_calc_x_step(g.one_over_z, min_y_vert, mid_y_vert, max_y_vert, one_over_dx);
 	g.one_over_zy_step = gradient_calc_y_step(g.one_over_z, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
+	g.depth[0] = min_y_vert.pos.z;
+	g.depth[1] = mid_y_vert.pos.z;
+	g.depth[2] = max_y_vert.pos.z;
+	g.depth_x_step = gradient_calc_x_step(g.depth, min_y_vert, mid_y_vert, max_y_vert, one_over_dx);
+	g.depth_y_step = gradient_calc_y_step(g.depth, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
 	return g;
 }

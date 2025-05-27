@@ -14,7 +14,7 @@ int main() {
 	vertex_t mid_y_vert = {{0.f, 1.f, 0.f, 1.f}, {0.5f, 1.f, 0.f, 0.f}};
 	vertex_t max_y_vert = {{1.f, -1.f, 0.f, 1.f}, {1.f, 0.f, 0.f, 0.f}};
 
-	mesh_t *mesh = create_mesh("icosphere.obj");
+	mesh_t *mesh = create_mesh("monkey1.obj");
 	bitmap_t *texture = create_bitmap_file("bricks.png");
 
 	float rot_counter = 0.f;
@@ -32,7 +32,7 @@ int main() {
 		clear();
 		rot_counter += delta_time * 0.000000001f;
 		matrix_t translation = init_matrix_translation(0.f, 0.f, 3.f);
-		matrix_t rotation = init_matrix_rotation(rot_counter, rot_counter, rot_counter);
+		matrix_t rotation = init_matrix_rotation(rot_counter, 0.f, rot_counter);
 		matrix_t transform = multiply_matricies(get_projection_matrix(), multiply_matricies(translation, rotation));
 		//fill_triangle(vertex_transform(max_y_vert, transform), vertex_transform(mid_y_vert, transform), vertex_transform(min_y_vert, transform), texture); 
 		draw_mesh(mesh, transform, texture);

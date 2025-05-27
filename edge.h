@@ -14,6 +14,8 @@ typedef struct {
 	float tex_coord_y_step;
 	float one_over_z;
 	float one_over_z_step;
+	float depth;
+	float depth_step;
 } edge_t;
 
 edge_t create_edge(gradients_t g, vertex_t min_y_vert, vertex_t max_y_vert, int min_y_vert_index);

@@ -14,13 +14,14 @@
 #include <signal.h>
 #include <wchar.h>
 #include <locale.h>
+#include <float.h>
 
 #define FOV 70.f
 
 int columns, rows;
 wchar_t *buffer;
 wchar_t *clear_buffer;
-
+float *depth_buffer;
 
 struct termios orig_termios;
 
@@ -50,15 +51,16 @@ void res_update() {
 		projection = init_perspective(FOV * 180.f / 3.14159f, columns / rows * 0.5f, 0.1f, 1000.f);
 		free(buffer);
 		free(clear_buffer);
-		buffer = (wchar_t *)malloc(((columns * rows) * 37 + 5) * sizeof(wchar_t));
-		clear_buffer = (wchar_t *)malloc(((columns * rows) * 37 + 5) * sizeof(wchar_t));
+		buffer = (wchar_t *)malloc((columns * rows * 37 + 5) * sizeof(wchar_t));
+		clear_buffer = (wchar_t *)malloc((columns * rows * 37 + 5) * sizeof(wchar_t));
+		depth_buffer = (float *)malloc(columns * rows * 2 * sizeof(float));
 
 		for (int i = 0; i < columns * rows; i++) {
-			wcsncpy(buffer + i * 37, L"\x1b[38;2;000;000;000;48;2;000;000;000m▀", 38);
+			wcsncpy(clear_buffer + i * 37, L"\x1b[38;2;000;000;000;48;2;000;000;000m▀", 38);
 		}
 	
-		wcsncpy(buffer + columns * rows * 37, L"\x1b[;H", 5);
-		wcsncpy(clear_buffer, buffer, rows * columns * 37 + 5);
+		wcsncpy(clear_buffer + columns * rows * 37, L"\x1b[;H", 5);
+		clear();
 	}
 }
 
@@ -106,6 +108,9 @@ void render() {
 
 void clear() {
 	wcsncpy(buffer, clear_buffer, rows * columns * 37 + 5);
+	for (int i = 0; i < columns * rows * 2; i++) {
+		depth_buffer[i] = FLT_MAX;
+	}
 }
 
 void plot_point(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b) {
@@ -143,17 +148,22 @@ void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
 	float tex_coord_xx_step = (right->tex_coord_x - left->tex_coord_x) / x_dist;
 	float tex_coord_yx_step = (right->tex_coord_y - left->tex_coord_y) / x_dist;
 	float one_over_zx_step = (right->one_over_z - left->one_over_z) / x_dist;
+	float depth_x_step = (right->depth - left->depth) / x_dist;
 
 	float tex_coord_x = left->tex_coord_x + tex_coord_xx_step * x_prestep;
 	float tex_coord_y = left->tex_coord_y + tex_coord_yx_step * x_prestep;
 	float one_over_z = left->one_over_z + one_over_zx_step * x_prestep;
+	float depth = left->depth + depth_x_step * x_prestep;
 
 	for (int i = x_min; i < x_max; i++) {
-		float z = 1.f / one_over_z;
-		unsigned int src_x = (unsigned int)fmax((tex_coord_x * z) * (texture->width - 1) + 0.5f, 0.f);
-		unsigned int src_y = (unsigned int)fmax((tex_coord_y * z) * (texture->height - 1) + 0.5f, 0.f);
-		//fprintf(stderr, "S: %f\n", left->tex_coord_y);
-		plot_point(i, j, texture->colors[(src_y * texture->width + src_x) * 3], texture->colors[(src_y * texture->width + src_x) * 3 + 1], texture->colors[(src_y * texture->width + src_x) * 3 + 2]);
+		int index = i + j * columns;
+		if (depth < depth_buffer[index]) {
+			depth_buffer[index] = depth;
+			float z = 1.f / one_over_z;
+			unsigned int src_x = (unsigned int)fmax((tex_coord_x * z) * (texture->width - 1) + 0.5f, 0.f);
+			unsigned int src_y = (unsigned int)fmax((tex_coord_y * z) * (texture->height - 1) + 0.5f, 0.f);
+			plot_point(i, j, texture->colors[(src_y * texture->width + src_x) * 3], texture->colors[(src_y * texture->width + src_x) * 3 + 1], texture->colors[(src_y * texture->width + src_x) * 3 + 2]);
+		}
 	
 		one_over_z += one_over_zx_step;
 		tex_coord_x += tex_coord_xx_step;
@@ -190,7 +200,6 @@ void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert
 	edge_t top_to_middle = create_edge(g, min_y_vert, mid_y_vert, 0);
 	edge_t middle_to_bottom = create_edge(g, mid_y_vert, max_y_vert, 1);
 
-	//fprintf(stderr, "Edge: %f\n", top_to_bottom.tex_coord_y);
 	scan_edges(&top_to_bottom, &top_to_middle, side, texture);
 	scan_edges(&top_to_bottom, &middle_to_bottom, side, texture);
 }
@@ -229,9 +238,6 @@ void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
 
 void draw_mesh(mesh_t *mesh, matrix_t transform, bitmap_t *texture) {
 	for (size_t i = 0; i < mesh->indices->length; i+=3) {
-		//fprintf(stderr, "Index: %lu, Vert1: %f,%f,%f,%f\n", i, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.x, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.y, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.z, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]]).pos.w);
-		//fprintf(stderr, "Index: %lu, Vert2: %f,%f,%f,%f\n", i + 1, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.x, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.y, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.z, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]]).pos.w);
-		//fprintf(stderr, "Index: %lu, Vert3: %f,%f,%f,%f\n", i + 2, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.x, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.y, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.z, (*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]]).pos.w);
 		fill_triangle(
 				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], transform),
 				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]], transform),
