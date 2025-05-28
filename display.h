@@ -26,7 +26,11 @@ void render();
 
 void clear();
 
-void plot_point(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b);
+void plot_point(unsigned int x, unsigned int y, unsigned int color);
+
+void plot_string(unsigned int x, unsigned int y, wchar_t *str, unsigned int foreground_color, unsigned int background_color);
+
+void plot_character(unsigned int x, unsigned int y, wchar_t character, unsigned int foreground_color, unsigned int background_color);
 
 void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture);
 

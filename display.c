@@ -3,6 +3,7 @@
 #include "bitmap.h"
 #include "mesh.h"
 #include "list.h"
+#include "math.h"
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <unistd.h>
@@ -105,6 +106,7 @@ int getch() {
 
 void render() {
 	printf("%ls", buffer);
+	fflush(stdout);
 }
 
 void clear() {
@@ -114,29 +116,36 @@ void clear() {
 	}
 }
 
-void plot_point(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b) {
-	for (char i = 0; i < 3; i++) {
-		for (char digit = 0; digit < 3; digit++) {
+void plot_point(unsigned int x, unsigned int y, unsigned int color) {
+	for (unsigned char i = 0; i < 3; i++) {
+		for (unsigned char digit = 0; digit < 3; digit++) {
 			char offset;
-			unsigned char color;
 			if (y % 2 == 0) {
 				offset = 9;
 			}
 			else {
 				offset = 26;
 			}
-			if (digit == 0) {
-				color = r;
-			}
-			else if (digit == 1) {
-				color = g;
-			}
-			else if (digit == 2) {
-				color = b;
-			}
-			buffer[(y / 2 * columns + x) * 37 + 4 * i + offset - digit] = 48 + color / (int)pow(10, digit) % 10;
+			buffer[(y / 2 * columns + x) * 37 + 4 * i - digit + offset] = 48 + (color >> 8 * i & 0xff) / pow10_[digit] % 10;
 		}
 	}
+}
+
+void plot_string(unsigned int x, unsigned int y, wchar_t *str, unsigned int foreground_color, unsigned int background_color) {
+	for (size_t i = 0; i < wcslen(str); i++) {
+		plot_character(x + i, y, str[i], foreground_color, background_color);
+	}
+}
+
+void plot_character(unsigned int x, unsigned int y, wchar_t character, unsigned int foreground_color, unsigned int background_color) {
+	for (unsigned char i = 0; i < 3; i++) {
+		for (unsigned char digit = 0; digit < 3; digit++) {
+			unsigned int position = (y * columns + x) * 37 + 4 * i - digit;
+			buffer[position + 9] = 48 + (foreground_color >> 8 * i & 0xff) / pow10_[digit] % 10;
+			buffer[position + 26] = 48 + (background_color >> 8 * i & 0xff) / pow10_[digit] % 10;
+		}
+	}
+	buffer[(y * columns + x) * 37 + 36] = character;
 }
 
 void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
@@ -163,7 +172,7 @@ void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
 			float z = 1.f / one_over_z;
 			unsigned int src_x = (unsigned int)fmax((tex_coord_x * z) * (texture->width - 1) + 0.5f, 0.f);
 			unsigned int src_y = (unsigned int)fmax((tex_coord_y * z) * (texture->height - 1) + 0.5f, 0.f);
-			plot_point(i, j, texture->colors[(src_y * texture->width + src_x) * 3], texture->colors[(src_y * texture->width + src_x) * 3 + 1], texture->colors[(src_y * texture->width + src_x) * 3 + 2]);
+			plot_point(i, j, (texture->colors[(src_y * texture->width + src_x) * 3] << 16) | (texture->colors[(src_y * texture->width + src_x) * 3 + 1] << 8) | texture->colors[(src_y * texture->width + src_x) * 3 + 2]);
 		}
 	
 		one_over_z += one_over_zx_step;
