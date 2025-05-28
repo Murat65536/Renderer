@@ -24,29 +24,29 @@ matrix_t multiply_matricies(matrix_t m1, matrix_t m2) {
 
 matrix_t init_identify_matrix() {
 	return (matrix_t) {{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1
+		1.f, 0.f, 0.f, 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f
 	}};
 }
 
 
 matrix_t init_screen_space_transform(float half_width, float half_height) {
 	return (matrix_t) {{
-		half_width, 0, 0, half_width,
-		0, -half_height, 0, half_height,
-		0, 0, 1, 0,
-		0, 0, 0, 1
+		half_width, 0.f, 0.f, half_width - 0.5f,
+		0.f, -half_height, 0.f, half_height - 0.5f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f
 	}};
 }
 
 matrix_t init_matrix_translation(float x, float y, float z) {
 	return (matrix_t) {{
-		1, 0, 0, x,
-		0, 1, 0, y,
-		0, 0, 1, z,
-		0, 0, 0, 1
+		1.f, 0.f, 0.f, x,
+		0.f, 1.f, 0.f, y,
+		0.f, 0.f, 1.f, z,
+		0.f, 0.f, 0.f, 1.f
 	}};
 }
 
@@ -55,43 +55,43 @@ matrix_t init_matrix_rotation_angle(float x, float y, float z, float angle) {
 	float cosine = cosf(angle);
 
 	return (matrix_t) {{
-		cosine + x * x * (1 - cosine),
-		x * y * (1 - cosine) - z * sine,
-		x * z * (1 - cosine) + y * sine,
-		0,
-		y * x * (1 - cosine) + z * sine,
-		cosine + y * y * (1 - cosine),
-		y * z * (1 - cosine) - x * sine,
-		0,
-		z * x * (1 - cosine) - y * sine,
-		z * y * (1 - cosine) + x * sine,
-		cosine + z * z * (1 - cosine),
-		0,
-		0,
-		0,
-		0,
-		1
+		cosine + x * x * (1.f - cosine),
+		x * y * (1.f - cosine) - z * sine,
+		x * z * (1.f - cosine) + y * sine,
+		0.f,
+		y * x * (1.f - cosine) + z * sine,
+		cosine + y * y * (1.f - cosine),
+		y * z * (1.f - cosine) - x * sine,
+		0.f,
+		z * x * (1.f - cosine) - y * sine,
+		z * y * (1.f - cosine) + x * sine,
+		cosine + z * z * (1.f - cosine),
+		0.f,
+		0.f,
+		0.f,
+		0.f,
+		1.f
 	}};
 }
 
 matrix_t init_matrix_rotation(float x, float y, float z) {
 	matrix_t rx = {{
-		1, 0, 0, 0,
-		0, cosf(x), -sinf(x), 0,
-		0, sinf(x), cosf(x), 0,
-		0, 0, 0, 1
+		1.f, 0.f, 0.f, 0.f,
+		0.f, cosf(x), -sinf(x), 0.f,
+		0.f, sinf(x), cosf(x), 0,
+		0.f, 0.f, 0.f, 1.f
 	}};
 	matrix_t ry = {{
-		cosf(y), 0, -sinf(y), 0,
-		0, 1, 0, 0,
-		sinf(y), 0, cosf(y), 0,
-		0, 0, 0, 1
+		cosf(y), 0.f, -sinf(y), 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		sinf(y), 0.f, cosf(y), 0.f,
+		0.f, 0.f, 0.f, 1.f
 	}};
 	matrix_t rz = {{
-		cosf(z), -sinf(z), 0, 0,
-		sinf(z), cosf(z), 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1	
+		cosf(z), -sinf(z), 0.f, 0.f,
+		sinf(z), cosf(z), 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f	
 	}};
 
 	return multiply_matricies(rz, multiply_matricies(ry, rx));
@@ -99,10 +99,10 @@ matrix_t init_matrix_rotation(float x, float y, float z) {
 
 matrix_t init_matrix_rotation_forward_up_right(vector_t forward, vector_t up, vector_t right) {
 	return (matrix_t) {{
-		right.x, right.y, right.z, 0,
-		up.x, up.y, up.z, 0,
-		forward.x, forward.y, forward.z, 0,
-		0, 0, 0, 1
+		right.x, right.y, right.z, 0.f,
+		up.x, up.y, up.z, 0.f,
+		forward.x, forward.y, forward.z, 0.f,
+		0.f, 0.f, 0.f, 1.f
 	}};
 }
 
@@ -115,10 +115,10 @@ matrix_t init_matrix_rotation_forward_up(vector_t forward, vector_t up) {
 
 matrix_t init_scale(float x, float y, float z) {
 	return (matrix_t) {{
-		x, 0, 0, 0,
-		0, y, 0, 0,
-		0, 0, z, 0,
-		0, 0, 0, 1
+		x, 0.f, 0.f, 0.f,
+		0.f, y, 0.f, 0.f,
+		0.f, 0.f, z, 0.f,
+		0.f, 0.f, 0.f, 1.f
 	}};
 }
 
@@ -127,10 +127,10 @@ matrix_t init_perspective(float fov, float aspect_ratio, float near, float far) 
 	float range = near - far;
 
 	return (matrix_t) {{
-		1.f / (tan_half_fov * aspect_ratio), 0, 0, 0,
-		0, 1.f / tan_half_fov, 0, 0,
-		0, 0, (-near - far) / range, 2 * far * near / range,
-		0, 0, 1, 0
+		1.f / (tan_half_fov * aspect_ratio), 0.f, 0.f, 0.f,
+		0.f, 1.f / tan_half_fov, 0.f, 0.f,
+		0.f, 0.f, (-near - far) / range, 2.f * far * near / range,
+		0.f, 0.f, 1.f, 0.f
 	}};
 }
 
@@ -140,10 +140,10 @@ matrix_t init_orthographic(float left, float right, float bottom, float top, flo
 	float depth = far - near;
 
 	return (matrix_t) {{
-		2.f / width, 0, 0, -(right + left) / width,
-		0, 2.f / height, 0, -(top + bottom) / height,
-		0, 0, -2.f / depth, -(far + near) / depth,
-		0, 0, 0, 1
+		2.f / width, 0.f, 0.f, -(right + left) / width,
+		0.f, 2.f / height, 0.f, -(top + bottom) / height,
+		0.f, 0.f, -2.f / depth, -(far + near) / depth,
+		0.f, 0.f, 0.f, 1.f
 	}};
 }
 

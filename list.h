@@ -13,6 +13,8 @@ list_t *create_list(size_t element_size);
 
 void list_add(list_t *list, void *value);
 
+void list_clear(list_t *list);
+
 void free_list(list_t *list);
 
 #endif

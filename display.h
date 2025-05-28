@@ -5,6 +5,7 @@
 #include "matrix.h"
 #include "mesh.h"
 #include "bitmap.h"
+#include "list.h"
 #include <stdbool.h>
 
 void reset_terminal_mode();
@@ -32,6 +33,12 @@ void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture);
 void scan_edges(edge_t *a, edge_t *b, bool side, bitmap_t *texture);
 
 void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, bool side, bitmap_t *texture);
+
+bool clip_polygon_axis(list_t *vertices, list_t *auxillary_list, char component_index);
+
+void clip_polygon_component(list_t *vertices, char component_index, float component_factor, list_t *result);
+
+void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture);
 
 void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture);
 

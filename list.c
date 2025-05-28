@@ -23,9 +23,15 @@ void list_add(list_t *list, void *value) {
 	memcpy(list->array[list->length++], value, list->element_size);
 }
 
-void free_list(list_t *list) {
-	for (unsigned int i = 0; i < list->length; i++) {
+void list_clear(list_t *list) {
+	for (size_t i = 0; i < list->length; i++) {
 		free(list->array[i]);
 	}
+	list->length = 0;
+}
+
+void free_list(list_t *list) {
+	list_clear(list);
 	free(list->array);
+	free(list);
 }

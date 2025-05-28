@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include "bitmap.h"
 #include "mesh.h"
+#include "list.h"
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <unistd.h>
@@ -196,7 +197,7 @@ void scan_edges(edge_t *a, edge_t *b, bool side, bitmap_t *texture) {
 
 void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, bool side, bitmap_t *texture) {
 	gradients_t g = create_gradient(min_y_vert, mid_y_vert, max_y_vert);
-	edge_t top_to_bottom = create_edge(g, min_y_vert, max_y_vert, 0);
+	edge_t top_to_bottom = create_edge(g,  min_y_vert, max_y_vert, 0);
 	edge_t top_to_middle = create_edge(g, min_y_vert, mid_y_vert, 0);
 	edge_t middle_to_bottom = create_edge(g, mid_y_vert, max_y_vert, 1);
 
@@ -204,6 +205,105 @@ void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert
 	scan_edges(&top_to_bottom, &middle_to_bottom, side, texture);
 }
 
+bool clip_polygon_axis(list_t *vertices, list_t *auxillary_list, char component_index) {
+	clip_polygon_component(vertices, component_index, 1.f, auxillary_list);
+	list_clear(vertices);
+	if (auxillary_list->length == 0) {
+		return false;
+	}
+	clip_polygon_component(auxillary_list, component_index, -1.f, vertices);
+	list_clear(auxillary_list);
+	return !vertices->length == 0;
+}
+
+void clip_polygon_component(list_t *vertices, char component_index, float component_factor, list_t *result) {
+	vertex_t previous_vertex = *(vertex_t *)vertices->array[vertices->length - 1];
+	float previous_component;
+	switch (component_index) {
+		case 0:
+			previous_component = previous_vertex.pos.x;
+			break;
+		case 1:
+			previous_component = previous_vertex.pos.y;
+			break;
+		case 2:
+			previous_component = previous_vertex.pos.z;
+			break;
+		case 3:
+			previous_component = previous_vertex.pos.w;
+			break;
+		default:
+			exit(1);
+	}
+	previous_component *= component_factor;
+	bool previous_inside = previous_component <= previous_vertex.pos.w;
+
+	for (size_t i = 0; i < vertices->length; i++) {
+		vertex_t current_vertex = *(vertex_t *)vertices->array[i];
+		float current_component;
+		switch (component_index) {
+			case 0:
+				current_component = current_vertex.pos.x;
+				break;
+			case 1:
+				current_component = current_vertex.pos.y;
+				break;
+			case 2:
+				current_component = current_vertex.pos.z;
+				break;
+			case 3:
+				current_component = current_vertex.pos.w;
+				break;
+			default:
+				exit(1);
+		}
+		current_component *= component_factor;
+		bool current_inside = current_component <= current_vertex.pos.w;
+
+		if (current_inside ^ previous_inside) {
+			float lerp_factor = (previous_vertex.pos.w - previous_component) / ((previous_vertex.pos.w - previous_component) - (current_vertex.pos.w - current_component));
+			list_add(result, malloc_vertex(vertex_lerp(previous_vertex, current_vertex, lerp_factor)));
+		}
+
+		if (current_inside) {
+			list_add(result, vertices->array[i]);
+		}
+
+		previous_vertex = *(vertex_t *)vertices->array[i];
+		previous_component = current_component;
+		previous_inside = current_inside;
+	}
+}
+
+void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
+	bool v1_inside = inside_view_frustum(v1);
+	bool v2_inside = inside_view_frustum(v2);
+	bool v3_inside = inside_view_frustum(v3);
+
+	if (v1_inside && v2_inside && v3_inside) {
+		fill_triangle(v1, v2, v3, texture);
+		return;
+	}
+	if (!v1_inside && !v2_inside && !v3_inside) {
+		return;
+	}
+
+	list_t *vertices = create_list(sizeof(vertex_t));
+	list_t *auxillary_list = create_list(sizeof(vertex_t));
+
+	list_add(vertices, &v1);
+	list_add(vertices, &v2);
+	list_add(vertices, &v3);
+
+	if (clip_polygon_axis(vertices, auxillary_list, 0) &&
+			clip_polygon_axis(vertices, auxillary_list, 1) && 
+			clip_polygon_axis(vertices, auxillary_list, 2)) {
+		vertex_t initial_vertex = *(vertex_t *)vertices->array[0];
+		for (size_t i = 1; i < vertices->length - 1; i++) {
+			fill_triangle(initial_vertex, *(vertex_t *)vertices->array[i], *(vertex_t *)vertices->array[i + 1], texture);
+		}
+	}
+}
 
 void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
 	matrix_t screen_space = init_screen_space_transform(columns * 0.5f, rows);
@@ -238,7 +338,7 @@ void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
 
 void draw_mesh(mesh_t *mesh, matrix_t transform, bitmap_t *texture) {
 	for (size_t i = 0; i < mesh->indices->length; i+=3) {
-		fill_triangle(
+		draw_triangle(
 				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], transform),
 				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]], transform),
 				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]], transform),
