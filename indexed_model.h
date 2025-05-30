@@ -12,6 +12,8 @@ typedef struct {
 
 indexed_model_t *create_indexed_model();
 
+void free_indexed_model(indexed_model_t *indexed_model);
+
 void calc_normals(indexed_model_t *indexed_model);
 
 void calc_tangents(indexed_model_t *indexed_model);

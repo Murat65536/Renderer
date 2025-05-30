@@ -25,19 +25,10 @@ wchar_t *buffer;
 wchar_t *clear_buffer;
 float *depth_buffer;
 
-struct termios orig_termios;
-
 matrix_t projection;
 
 
 bool update = true;
-
-void reset_terminal_mode() {
-	printf("\x1b[0m\x1b[2J\x1b[?25h\x1b[8;100;200t");
-	tcsetattr(0, TCSANOW, &orig_termios);
-	free(buffer);
-	free(clear_buffer);
-}
 
 void queue_res_update(int s) {
 	update = true;
@@ -53,9 +44,9 @@ void res_update() {
 		projection = init_perspective(FOV * 180.f / 3.14159f, columns / rows * 0.5f, 0.1f, 1000.f);
 		free(buffer);
 		free(clear_buffer);
-		buffer = (wchar_t *)malloc((columns * rows * 37 + 5) * sizeof(wchar_t));
-		clear_buffer = (wchar_t *)malloc((columns * rows * 37 + 5) * sizeof(wchar_t));
-		depth_buffer = (float *)malloc(columns * rows * 2 * sizeof(float));
+		buffer = malloc((columns * rows * 37 + 5) * sizeof(wchar_t));
+		clear_buffer = malloc((columns * rows * 37 + 5) * sizeof(wchar_t));
+		depth_buffer = malloc(columns * rows * 2 * sizeof(float));
 
 		for (int i = 0; i < columns * rows; i++) {
 			wcsncpy(clear_buffer + i * 37, L"\x1b[38;2;000;000;000;48;2;000;000;000m▀", 38);
@@ -72,40 +63,14 @@ void init_display() {
 	signal(SIGWINCH, queue_res_update);
 	
 	printf("\x1b[?25l");
-	
-	struct termios new_termios;
-	tcgetattr(0, &orig_termios);
-	memcpy(&new_termios, &orig_termios, sizeof(new_termios));
-	atexit(reset_terminal_mode);
-	cfmakeraw(&new_termios);
-	tcsetattr(0, TCSANOW, &new_termios);
 }
 
 matrix_t get_projection_matrix() {
 	return projection;
 }
 
-bool kbhit() {
-	struct timeval tv = {0L, 0L};
-	fd_set fds;
-	FD_ZERO(&fds);
-	FD_SET(0, &fds);
-	return select(1, &fds, NULL, NULL, &tv) > 0;
-}
-
-int getch() {
-	int r;
-	unsigned char c;
-	if ((r = read(0, &c, sizeof(c))) < 0) {
-		return r;
-	}
-	else {
-		return c;
-	}
-}
-
 void render() {
-	printf("%ls", buffer);
+	fprintf(stdout, "%ls", buffer);
 	fflush(stdout);
 }
 
@@ -172,7 +137,7 @@ void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
 			float z = 1.f / one_over_z;
 			unsigned int src_x = (unsigned int)fmax((tex_coord_x * z) * (texture->width - 1) + 0.5f, 0.f);
 			unsigned int src_y = (unsigned int)fmax((tex_coord_y * z) * (texture->height - 1) + 0.5f, 0.f);
-			plot_point(i, j, (texture->colors[(src_y * texture->width + src_x) * 3] << 16) | (texture->colors[(src_y * texture->width + src_x) * 3 + 1] << 8) | texture->colors[(src_y * texture->width + src_x) * 3 + 2]);
+			plot_point(i, j, (texture->colors[(src_y * texture->width + src_x) * 3 + 2] << 16) | (texture->colors[(src_y * texture->width + src_x) * 3 + 1] << 8) | texture->colors[(src_y * texture->width + src_x) * 3]);
 		}
 	
 		one_over_z += one_over_zx_step;

@@ -31,7 +31,9 @@ void list_clear(list_t *list) {
 }
 
 void free_list(list_t *list) {
-	list_clear(list);
+	for (size_t i = 0; i < list->length; i++) {
+		free(list->array[i]);
+	}
 	free(list->array);
 	free(list);
 }

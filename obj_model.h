@@ -20,6 +20,8 @@ typedef struct {
 
 obj_model_t *create_obj_model(char *filename);
 
+void free_obj_model(obj_model_t *obj_model);
+
 bool compare_size_t(void *s1, void *s2);
 
 bool compare_obj_index_t(void *o1, void *o2);

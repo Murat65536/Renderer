@@ -7,7 +7,7 @@ typedef struct {
 	float m[16];
 } matrix_t;
 
-matrix_t multiply_matricies(matrix_t m1, matrix_t m2);
+matrix_t multiply_matrices(matrix_t m1, matrix_t m2);
 
 matrix_t init_identify_matrix();
 
@@ -23,7 +23,7 @@ matrix_t init_matrix_rotation_forward_up_right(vector_t forward, vector_t up, ve
 
 matrix_t init_matrix_rotation_forward_up(vector_t forward, vector_t up);
 
-matrix_t init_scale(float x, float y, float z);
+matrix_t init_matrix_scale(float x, float y, float z);
 
 matrix_t init_perspective(float fov, float aspect_ratio, float near, float far);
 

@@ -2,6 +2,7 @@
 #define VERTEX_H_
 #include "vector.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct {
 	vector_t pos;

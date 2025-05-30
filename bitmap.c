@@ -11,7 +11,7 @@ bitmap_t *create_bitmap(unsigned int width, unsigned int height) {
 	bitmap_t *bitmap = malloc(sizeof(bitmap_t));
 	bitmap->width = width;
 	bitmap->height = height;
-	bitmap->colors = (unsigned char *)malloc(width * height * 3 * sizeof(unsigned char));
+	bitmap->colors = malloc(width * height * 3 * sizeof(unsigned char));
 	return bitmap;
 }
 
@@ -19,4 +19,9 @@ bitmap_t *create_bitmap_file(char *filename) {
 	bitmap_t *bitmap = malloc(sizeof(bitmap_t));
 	lodepng_decode24_file(&bitmap->colors, &bitmap->width, &bitmap->height, filename);
 	return bitmap;
+}
+
+void free_bitmap(bitmap_t *bitmap) {
+	free(bitmap->colors);
+	free(bitmap);
 }

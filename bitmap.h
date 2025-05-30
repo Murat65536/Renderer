@@ -11,4 +11,6 @@ bitmap_t *create_bitmap(unsigned int width, unsigned int height);
 
 bitmap_t *create_bitmap_file(char *filename);
 
+void free_bitmap(bitmap_t *bitmap);
+
 #endif

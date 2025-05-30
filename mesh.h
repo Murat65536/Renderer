@@ -9,4 +9,6 @@ typedef struct {
 
 mesh_t *create_mesh(char *filename);
 
+void free_mesh(mesh_t *mesh);
+
 #endif

@@ -1,7 +1,7 @@
 #include "matrix.h"
 #include <math.h>
 
-matrix_t multiply_matricies(matrix_t m1, matrix_t m2) {
+matrix_t multiply_matrices(matrix_t m1, matrix_t m2) {
 	return (matrix_t) {{
 		m1.m[0] * m2.m[0] + m1.m[1] * m2.m[4] + m1.m[2] * m2.m[8] + m1.m[3] * m2.m[12],
 		m1.m[0] * m2.m[1] + m1.m[1] * m2.m[5] + m1.m[2] * m2.m[9] + m1.m[3] * m2.m[13],
@@ -94,7 +94,7 @@ matrix_t init_matrix_rotation(float x, float y, float z) {
 		0.f, 0.f, 0.f, 1.f	
 	}};
 
-	return multiply_matricies(rz, multiply_matricies(ry, rx));
+	return multiply_matrices(rz, multiply_matrices(ry, rx));
 }
 
 matrix_t init_matrix_rotation_forward_up_right(vector_t forward, vector_t up, vector_t right) {
@@ -113,7 +113,7 @@ matrix_t init_matrix_rotation_forward_up(vector_t forward, vector_t up) {
 	return init_matrix_rotation_forward_up_right(f, u, r);
 }
 
-matrix_t init_scale(float x, float y, float z) {
+matrix_t init_matrix_scale(float x, float y, float z) {
 	return (matrix_t) {{
 		x, 0.f, 0.f, 0.f,
 		0.f, y, 0.f, 0.f,

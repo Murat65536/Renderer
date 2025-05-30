@@ -8,8 +8,6 @@
 #include "list.h"
 #include <stdbool.h>
 
-void reset_terminal_mode();
-
 void queue_res_update(int s);
 
 void res_update();
@@ -17,10 +15,6 @@ void res_update();
 void init_display();
 
 matrix_t get_projection_matrix();
-
-bool kbhit();
-
-int getch();
 
 void render();
 
