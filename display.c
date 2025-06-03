@@ -109,40 +109,40 @@ void plot_character(const unsigned int x, const unsigned int y, const wchar_t ch
 	buffer[(y * columns + x) * 37 + 36] = character;
 }
 
-void draw_scan_line(const edge_t *left, const edge_t *right, const int j, const bitmap_t *texture) {
-	int x_min = (int)ceil(left->x);
-	int x_max = (int)ceil(right->x);
+void draw_scan_line(const gradients_t g, const edge_t *left, const edge_t *right, const int j, const bitmap_t *texture) {
+	const int x_min = (int)ceil(left->x);
+	const int x_max = (int)ceil(right->x);
 
-	float x_prestep = x_min - left->x;
-
-	float x_dist = right->x - left->x;
-	float tex_coord_xx_step = (right->tex_coord_x - left->tex_coord_x) / x_dist;
-	float tex_coord_yx_step = (right->tex_coord_y - left->tex_coord_y) / x_dist;
-	float one_over_zx_step = (right->one_over_z - left->one_over_z) / x_dist;
-	float depth_x_step = (right->depth - left->depth) / x_dist;
-
-	float tex_coord_x = left->tex_coord_x + tex_coord_xx_step * x_prestep;
-	float tex_coord_y = left->tex_coord_y + tex_coord_yx_step * x_prestep;
-	float one_over_z = left->one_over_z + one_over_zx_step * x_prestep;
-	float depth = left->depth + depth_x_step * x_prestep;
+	const float x_prestep = x_min - left->x;
+	float tex_coord_x = left->tex_coord_x + g.tex_coord_xx_step * x_prestep;
+	float tex_coord_y = left->tex_coord_y + g.tex_coord_yx_step * x_prestep;
+	float one_over_z = left->one_over_z + g.one_over_zx_step * x_prestep;
+	float depth = left->depth + g.depth_x_step * x_prestep;
+  float light_amt = left->light_amt + g.light_amt_x_step * x_prestep;
 
 	for (int i = x_min; i < x_max; i++) {
-		int index = i + j * columns;
+		const int index = i + j * columns;
 		if (depth < depth_buffer[index]) {
 			depth_buffer[index] = depth;
-			float z = 1.f / one_over_z;
-			int src_x = (int)((tex_coord_x * z) * (texture->width - 1) + 0.5f);
-			int src_y = (int)((tex_coord_y * z) * (texture->height - 1) + 0.5f);
-			plot_point(i, j, (texture->colors[(src_y * texture->width + src_x) * 3 + 2] << 16) | (texture->colors[(src_y * texture->width + src_x) * 3 + 1] << 8) | texture->colors[(src_y * texture->width + src_x) * 3]);
+			const float z = 1.f / one_over_z;
+			const int src_x = (int)((tex_coord_x * z) * (texture->width - 1) + 0.5f);
+			const int src_y = (int)((tex_coord_y * z) * (texture->height - 1) + 0.5f);
+      
+			plot_point(i, j, 
+              ((unsigned char)(texture->colors[(src_y * texture->width + src_x) * 3 + 2] * light_amt) << 16) |
+              ((unsigned char)(texture->colors[(src_y * texture->width + src_x) * 3 + 1] * light_amt) << 8) |
+              (unsigned char)(texture->colors[(src_y * texture->width + src_x) * 3] * light_amt));
 		}
 	
-		one_over_z += one_over_zx_step;
-		tex_coord_x += tex_coord_xx_step;
-		tex_coord_y += tex_coord_yx_step;
+		one_over_z += g.one_over_zx_step;
+		tex_coord_x += g.tex_coord_xx_step;
+		tex_coord_y += g.tex_coord_yx_step;
+    depth += g.depth_x_step;
+    light_amt += g.light_amt_x_step;
 	}
 }
 
-void scan_edges(edge_t *a, edge_t *b, const bool side, const bitmap_t *texture) {
+void scan_edges(const gradients_t g, edge_t *a, edge_t *b, const bool side, const bitmap_t *texture) {
 	edge_t *left;
 	edge_t *right;
 
@@ -159,7 +159,7 @@ void scan_edges(edge_t *a, edge_t *b, const bool side, const bitmap_t *texture) 
 	int y_end = b->y_end;
 
 	for (int j = y_start; j < y_end; j++) {
-		draw_scan_line(left, right, j, texture);
+		draw_scan_line(g, left, right, j, texture);
 		edge_step(left);
 		edge_step(right);
 	}
@@ -171,8 +171,8 @@ void scan_triangle(const vertex_t min_y_vert, const vertex_t mid_y_vert, const v
 	edge_t top_to_middle = create_edge(g, min_y_vert, mid_y_vert, 0);
 	edge_t middle_to_bottom = create_edge(g, mid_y_vert, max_y_vert, 1);
 
-	scan_edges(&top_to_bottom, &top_to_middle, side, texture);
-	scan_edges(&top_to_bottom, &middle_to_bottom, side, texture);
+	scan_edges(g, &top_to_bottom, &top_to_middle, side, texture);
+	scan_edges(g, &top_to_bottom, &middle_to_bottom, side, texture);
 }
 
 bool clip_polygon_axis(list_t *vertices, list_t *auxillary_list, const char component_index) {
@@ -294,12 +294,13 @@ void fill_triangle(const vertex_t v1, const vertex_t v2, const vertex_t v3, cons
 	scan_triangle(min_y_vert, mid_y_vert, max_y_vert, triangle_cross_product(min_y_vert, max_y_vert, mid_y_vert) >= 0, texture);
 }
 
-void draw_mesh(const mesh_t *mesh, const matrix_t transform, const bitmap_t *texture) {
+void draw_mesh(const mesh_t *mesh, const matrix_t view_projection, const matrix_t transform, const bitmap_t *texture) {
+  matrix_t matrix_view_proj = multiply_matrices(view_projection, transform);
 	for (size_t i = 0; i < mesh->indices->length; i+=3) {
 		draw_triangle(
-				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], transform),
-				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]], transform),
-				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]], transform),
+				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], matrix_view_proj, transform),
+				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]], matrix_view_proj, transform),
+				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]], matrix_view_proj, transform),
 				texture);
 	}
 }

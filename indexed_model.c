@@ -31,7 +31,7 @@ void calc_normals(indexed_model_t *indexed_model) {
 		vector_t v1 = vector_subtract_vector(*(vector_t *)indexed_model->positions->array[i1], *(vector_t *)indexed_model->positions->array[i0]);
 		vector_t v2 = vector_subtract_vector(*(vector_t *)indexed_model->positions->array[i2], *(vector_t *)indexed_model->positions->array[i0]);
 
-		vector_t normal = vector_normalized(vector_cross_product(v1, v2));
+		vector_t normal = vector_normalize(vector_cross_product(v1, v2));
 
 		vector_t nv1 = vector_add_vector(*(vector_t *)indexed_model->normals->array[i0], normal);
 		vector_t nv2 = vector_add_vector(*(vector_t *)indexed_model->normals->array[i1], normal);
@@ -42,7 +42,7 @@ void calc_normals(indexed_model_t *indexed_model) {
 		indexed_model->normals->array[i2] = &nv3;
 	}
 	for (size_t i = 0; i < indexed_model->indices->length; i++) {
-		vector_t v = vector_normalized(*(vector_t *)indexed_model->normals->array[i]);
+		vector_t v = vector_normalize(*(vector_t *)indexed_model->normals->array[i]);
 		indexed_model->normals->array[i] = &v;
 	}
 }
@@ -85,7 +85,7 @@ void calc_tangents(indexed_model_t *indexed_model) {
 		indexed_model->tangents->array[i2] = &v3;
 	}
 	for (size_t i = 0; i < indexed_model->tangents->length; i++) {
-		vector_t v = vector_normalized(*(vector_t *)indexed_model->tangents->array[i]);
+		vector_t v = vector_normalize(*(vector_t *)indexed_model->tangents->array[i]);
 		indexed_model->tangents->array[i] = &v;
 	}
 }

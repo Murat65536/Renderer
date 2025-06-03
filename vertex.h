@@ -8,6 +8,7 @@
 typedef struct {
 	vector_t pos;
 	vector_t tex_coords;
+  vector_t normal;
 } vertex_t;
 
 static inline float triangle_cross_product(const vertex_t a, const vertex_t b, const vertex_t c) {
@@ -15,11 +16,11 @@ static inline float triangle_cross_product(const vertex_t a, const vertex_t b, c
 }
 
 static inline vertex_t vertex_perspective_divide(const vertex_t v) {
-	return (vertex_t) {{v.pos.x / v.pos.w, v.pos.y / v.pos.w, v.pos.z / v.pos.w, v.pos.w}, v.tex_coords};
+	return (vertex_t) {{v.pos.x / v.pos.w, v.pos.y / v.pos.w, v.pos.z / v.pos.w, v.pos.w}, v.tex_coords, v.normal};
 }
 
 static inline vertex_t vertex_lerp(vertex_t a, vertex_t b, float lerp_factor) {
-	return (vertex_t) {vector_lerp(a.pos, b.pos, lerp_factor), vector_lerp(a.tex_coords, b.tex_coords, lerp_factor)};
+	return (vertex_t) {vector_lerp(a.pos, b.pos, lerp_factor), vector_lerp(a.tex_coords, b.tex_coords, lerp_factor), vector_lerp(a.normal, b.normal, lerp_factor)};
 }
 
 static inline bool inside_view_frustum(vertex_t vertex) {

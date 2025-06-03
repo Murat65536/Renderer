@@ -6,6 +6,7 @@
 #include "mesh.h"
 #include "bitmap.h"
 #include "list.h"
+#include "gradients.h"
 #include <stdbool.h>
 
 extern matrix_t projection;
@@ -26,9 +27,9 @@ void plot_string(const unsigned int x, const unsigned int y, const wchar_t *str,
 
 void plot_character(const unsigned int x, const unsigned int y, const wchar_t character, const unsigned int foreground_color, const unsigned int background_color);
 
-void draw_scan_line(const edge_t *left, const edge_t *right, const int j, const bitmap_t *texture);
+void draw_scan_line(const gradients_t g, const edge_t *left, const edge_t *right, const int j, const bitmap_t *texture);
 
-void scan_edges(edge_t *a, edge_t *b, const bool side, const bitmap_t *texture);
+void scan_edges(const gradients_t g, edge_t *a, edge_t *b, const bool side, const bitmap_t *texture);
 
 void scan_triangle(const vertex_t min_y_vert, const vertex_t mid_y_vert, const vertex_t max_y_vert, const bool side, const bitmap_t *texture);
 
@@ -40,6 +41,6 @@ void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, const bitmap_t *textur
 
 void fill_triangle(const vertex_t v1, const vertex_t v2, const vertex_t v3, const bitmap_t *texture);
 
-void draw_mesh(const mesh_t *mesh, const matrix_t transform, const bitmap_t *texture);
+void draw_mesh(const mesh_t *mesh, const matrix_t view_projection, const matrix_t transform, const bitmap_t *texture);
 
 #endif

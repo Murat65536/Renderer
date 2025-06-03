@@ -107,8 +107,8 @@ matrix_t init_matrix_rotation_forward_up_right(vector_t forward, vector_t up, ve
 }
 
 matrix_t init_matrix_rotation_forward_up(vector_t forward, vector_t up) {
-	vector_t f = vector_normalized(forward);
-	vector_t r = vector_cross_product(vector_normalized(up), f);
+	vector_t f = vector_normalize(forward);
+	vector_t r = vector_cross_product(vector_normalize(up), f);
 	vector_t u = vector_cross_product(f, r);
 	return init_matrix_rotation_forward_up_right(f, u, r);
 }
@@ -156,6 +156,10 @@ vector_t matrix_transform(matrix_t m, vector_t r) {
 	};
 }
 
+vertex_t vertex_transform_normal(vertex_t v, matrix_t transform, matrix_t normal_transform) {
+	return (vertex_t) {matrix_transform(transform, v.pos), v.tex_coords, vector_normalize(matrix_transform(normal_transform, v.normal))};
+}
+
 vertex_t vertex_transform(vertex_t v, matrix_t transform) {
-	return (vertex_t) {matrix_transform(transform, v.pos), v.tex_coords};
+	return (vertex_t) {matrix_transform(transform, v.pos), v.tex_coords, v.normal};
 }

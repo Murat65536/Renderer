@@ -65,7 +65,7 @@ static inline vector_t vector_cross_product(vector_t v1, vector_t v2) {
 	return (vector_t) {v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x, 0};
 }
 
-static inline vector_t vector_normalized(vector_t v) {
+static inline vector_t vector_normalize(vector_t v) {
 	float length = vector_length(v);
 	return (vector_t) {v.x / length, v.y / length, v.z / length, v.w / length};
 }

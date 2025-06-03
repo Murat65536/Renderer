@@ -18,6 +18,15 @@ static inline float _max(float x, float y) {
     return y;
   }
 }
+static inline float _clamp(float x, float min_x, float max_x) {
+  if (x > max_x) {
+    return max_x;
+  }
+  if (x < min_x) {
+    return min_x;
+  }
+  return x;
+}
 static inline int _floor(float x) {
   int i = (int)x;
   return i - (i > x);

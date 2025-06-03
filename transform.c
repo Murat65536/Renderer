@@ -12,7 +12,7 @@ transform_t transform_look_at(transform_t transform, vector_t point, vector_t up
 }
 
 quaternion_t transform_get_look_at_rotation(transform_t transform, vector_t point, vector_t up) {
-	return quaternion_matrix(init_matrix_rotation_forward_up(vector_normalized(vector_subtract_vector(point, transform.pos)), up));
+	return quaternion_matrix(init_matrix_rotation_forward_up(vector_normalize(vector_subtract_vector(point, transform.pos)), up));
 }
 
 matrix_t get_transformation(transform_t transform) {

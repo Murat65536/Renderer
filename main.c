@@ -16,10 +16,13 @@ int main(int argc, char **argv) {
 	init_display();
 
 	mesh_t *mesh = create_mesh("monkey1.obj");
-	bitmap_t *texture = create_bitmap_file("bricks.png");
+	matrix_t translation = init_matrix_translation(0.f, 0.f, 1.f);
+	matrix_t rotation = init_matrix_rotation(0.f, 0.f, 0.f);
+  bitmap_t *texture = create_bitmap_file("bricks.png");
 	mesh_t *terrain = create_mesh("terrain2.obj");
 	bitmap_t *texture_terrain = create_bitmap_file("bricks2.png");
-	float rot_counter = 0.f;
+	matrix_t translation_terrain = init_matrix_translation(0.f, -3.f, 0.f);
+	//float rot_counter = 0.f;
 	camera_t *camera = malloc(sizeof(camera_t));
 	camera->transform = (transform_t) {{0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f}, {1.f, 1.f, 1.f, 1.f}};
 	unsigned long long start_time, end_time = 0;
@@ -35,13 +38,8 @@ int main(int argc, char **argv) {
 		}
 		clear();
 		//rot_counter += delta_time;
-		matrix_t translation = init_matrix_translation(0.f, 0.f, 1.f);
-		matrix_t translation_terrain = init_matrix_translation(0.f, -3.f, 0.f);
-		matrix_t rotation = init_matrix_rotation(rot_counter, 0.f, rot_counter);
-		matrix_t transform = multiply_matrices(get_view_projection(camera), multiply_matrices(translation, rotation));
-		matrix_t transform_terrain = multiply_matrices(get_view_projection(camera), multiply_matrices(translation_terrain, rotation));
-		draw_mesh(mesh, transform, texture);
-		draw_mesh(terrain, transform_terrain, texture_terrain);
+		draw_mesh(mesh, get_view_projection(camera), multiply_matrices(translation, rotation), texture);
+		draw_mesh(terrain, get_view_projection(camera), multiply_matrices(translation_terrain, rotation), texture_terrain);
 		char fps[14];
 		snprintf(fps, 14, "FPS: %f", 1.f / delta_time);
 		wchar_t str[14];

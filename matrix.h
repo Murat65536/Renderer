@@ -31,6 +31,8 @@ matrix_t init_orthographic(float left, float right, float bottom, float top, flo
 
 vector_t matrix_transform(matrix_t m, vector_t r);
 
+vertex_t vertex_transform_normal(vertex_t v, matrix_t transform, matrix_t normal_transform);
+
 vertex_t vertex_transform(vertex_t v, matrix_t transform);
 
 #endif
