@@ -14,7 +14,8 @@ mesh_t *create_mesh(char *filename) {
 	indexed_model_t *indexed_model = to_indexed_model(obj_model);
 	free_obj_model(obj_model);
 	for (size_t i = 0; i < indexed_model->positions->length; i++) {
-		list_add(mesh->vertices, create_vertex(*(vector_t *)indexed_model->positions->array[i], *(vector_t *)indexed_model->tex_coords->array[i]));
+    vertex_t v = (vertex_t) {*(vector_t *)indexed_model->positions->array[i], *(vector_t *)indexed_model->tex_coords->array[i]};
+		list_add(mesh->vertices, &v);
 	}
 	for (size_t i = 0; i < indexed_model->indices->length; i++) {
 		list_add(mesh->indices, indexed_model->indices->array[i]);

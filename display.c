@@ -30,11 +30,11 @@ matrix_t projection;
 
 bool update = true;
 
-void queue_res_update(int s) {
+void queue_res_update(const int s) {
 	update = true;
 }
 
-void res_update() {	
+void res_update() {
 	if (update) {
 		update = false;
 		struct winsize winsz;
@@ -65,10 +65,6 @@ void init_display() {
 	printf("\x1b[?25l");
 }
 
-matrix_t get_projection_matrix() {
-	return projection;
-}
-
 void render() {
 	fprintf(stdout, "%ls", buffer);
 	fflush(stdout);
@@ -81,7 +77,7 @@ void clear() {
 	}
 }
 
-void plot_point(unsigned int x, unsigned int y, unsigned int color) {
+void plot_point(const unsigned int x, const unsigned int y, const unsigned int color) {
 	for (unsigned char i = 0; i < 3; i++) {
 		for (unsigned char digit = 0; digit < 3; digit++) {
 			char offset;
@@ -91,29 +87,29 @@ void plot_point(unsigned int x, unsigned int y, unsigned int color) {
 			else {
 				offset = 26;
 			}
-			buffer[(y / 2 * columns + x) * 37 + 4 * i - digit + offset] = 48 + (color >> 8 * i & 0xff) / pow10_[digit] % 10;
+			buffer[(y / 2 * columns + x) * 37 + 4 * i - digit + offset] = 48 + (color >> 8 * i & 0xff) / _pow10[digit] % 10;
 		}
 	}
 }
 
-void plot_string(unsigned int x, unsigned int y, wchar_t *str, unsigned int foreground_color, unsigned int background_color) {
+void plot_string(const unsigned int x, const unsigned int y, const wchar_t *str, const unsigned int foreground_color, const unsigned int background_color) {
 	for (size_t i = 0; i < wcslen(str); i++) {
 		plot_character(x + i, y, str[i], foreground_color, background_color);
 	}
 }
 
-void plot_character(unsigned int x, unsigned int y, wchar_t character, unsigned int foreground_color, unsigned int background_color) {
+void plot_character(const unsigned int x, const unsigned int y, const wchar_t character, const unsigned int foreground_color, const unsigned int background_color) {
 	for (unsigned char i = 0; i < 3; i++) {
 		for (unsigned char digit = 0; digit < 3; digit++) {
 			unsigned int position = (y * columns + x) * 37 + 4 * i - digit;
-			buffer[position + 9] = 48 + (foreground_color >> 8 * i & 0xff) / pow10_[digit] % 10;
-			buffer[position + 26] = 48 + (background_color >> 8 * i & 0xff) / pow10_[digit] % 10;
+			buffer[position + 9] = 48 + (foreground_color >> 8 * i & 0xff) / _pow10[digit] % 10;
+			buffer[position + 26] = 48 + (background_color >> 8 * i & 0xff) / _pow10[digit] % 10;
 		}
 	}
 	buffer[(y * columns + x) * 37 + 36] = character;
 }
 
-void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
+void draw_scan_line(const edge_t *left, const edge_t *right, const int j, const bitmap_t *texture) {
 	int x_min = (int)ceil(left->x);
 	int x_max = (int)ceil(right->x);
 
@@ -135,8 +131,8 @@ void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
 		if (depth < depth_buffer[index]) {
 			depth_buffer[index] = depth;
 			float z = 1.f / one_over_z;
-			unsigned int src_x = (unsigned int)fmax((tex_coord_x * z) * (texture->width - 1) + 0.5f, 0.f);
-			unsigned int src_y = (unsigned int)fmax((tex_coord_y * z) * (texture->height - 1) + 0.5f, 0.f);
+			int src_x = (int)((tex_coord_x * z) * (texture->width - 1) + 0.5f);
+			int src_y = (int)((tex_coord_y * z) * (texture->height - 1) + 0.5f);
 			plot_point(i, j, (texture->colors[(src_y * texture->width + src_x) * 3 + 2] << 16) | (texture->colors[(src_y * texture->width + src_x) * 3 + 1] << 8) | texture->colors[(src_y * texture->width + src_x) * 3]);
 		}
 	
@@ -146,7 +142,7 @@ void draw_scan_line(edge_t *left, edge_t *right, int j, bitmap_t *texture) {
 	}
 }
 
-void scan_edges(edge_t *a, edge_t *b, bool side, bitmap_t *texture) {
+void scan_edges(edge_t *a, edge_t *b, const bool side, const bitmap_t *texture) {
 	edge_t *left;
 	edge_t *right;
 
@@ -169,7 +165,7 @@ void scan_edges(edge_t *a, edge_t *b, bool side, bitmap_t *texture) {
 	}
 }
 
-void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert, bool side, bitmap_t *texture) {
+void scan_triangle(const vertex_t min_y_vert, const vertex_t mid_y_vert, const vertex_t max_y_vert, const bool side, const bitmap_t *texture) {
 	gradients_t g = create_gradient(min_y_vert, mid_y_vert, max_y_vert);
 	edge_t top_to_bottom = create_edge(g,  min_y_vert, max_y_vert, 0);
 	edge_t top_to_middle = create_edge(g, min_y_vert, mid_y_vert, 0);
@@ -179,80 +175,70 @@ void scan_triangle(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t max_y_vert
 	scan_edges(&top_to_bottom, &middle_to_bottom, side, texture);
 }
 
-bool clip_polygon_axis(list_t *vertices, list_t *auxillary_list, char component_index) {
-	clip_polygon_component(vertices, component_index, 1.f, auxillary_list);
+bool clip_polygon_axis(list_t *vertices, list_t *auxillary_list, const char component_index) {
+	clip_polygon_component(vertices, component_index, false, auxillary_list);
 	list_clear(vertices);
 	if (auxillary_list->length == 0) {
 		return false;
 	}
-	clip_polygon_component(auxillary_list, component_index, -1.f, vertices);
+	clip_polygon_component(auxillary_list, component_index, true, vertices);
 	list_clear(auxillary_list);
-	return !vertices->length == 0;
+	return vertices->length != 0;
 }
 
-void clip_polygon_component(list_t *vertices, char component_index, float component_factor, list_t *result) {
+void clip_polygon_component(list_t *vertices, const char component_index, const bool negative, list_t *result) {
 	vertex_t previous_vertex = *(vertex_t *)vertices->array[vertices->length - 1];
-	float previous_component;
-	switch (component_index) {
-		case 0:
-			previous_component = previous_vertex.pos.x;
-			break;
-		case 1:
-			previous_component = previous_vertex.pos.y;
-			break;
-		case 2:
-			previous_component = previous_vertex.pos.z;
-			break;
-		case 3:
-			previous_component = previous_vertex.pos.w;
-			break;
-		default:
-			exit(1);
-	}
-	previous_component *= component_factor;
+  float previous_component;
+  switch (component_index) {
+    case 0:
+    previous_component = previous_vertex.pos.x;
+    break;
+    case 1:
+    previous_component = previous_vertex.pos.y;
+    break;
+    case 2:
+    previous_component = previous_vertex.pos.z;
+    break;
+  }
+	if (negative) {
+    previous_component *= -1;
+  }
 	bool previous_inside = previous_component <= previous_vertex.pos.w;
-
-	for (size_t i = 0; i < vertices->length; i++) {
-		vertex_t current_vertex = *(vertex_t *)vertices->array[i];
-		float current_component;
-		switch (component_index) {
-			case 0:
-				current_component = current_vertex.pos.x;
-				break;
-			case 1:
-				current_component = current_vertex.pos.y;
-				break;
-			case 2:
-				current_component = current_vertex.pos.z;
-				break;
-			case 3:
-				current_component = current_vertex.pos.w;
-				break;
-			default:
-				exit(1);
+  for (size_t i = 0; i < vertices->length; i++) {
+	vertex_t current_vertex = *(vertex_t *)vertices->array[i];
+    float current_component;
+    switch (component_index) {
+      case 0:
+      current_component = current_vertex.pos.x;
+      break;
+      case 1:
+      current_component = current_vertex.pos.y;
+      break;
+      case 2:
+      current_component = current_vertex.pos.z;
+      break;
+    }
+	  if (negative) {
+      current_component *= -1;
+    }
+    bool current_inside = current_component <= current_vertex.pos.w;
+	  if (current_inside ^ previous_inside) {
+      vertex_t v = vertex_lerp(previous_vertex, current_vertex, (previous_vertex.pos.w - previous_component) / ((previous_vertex.pos.w - previous_component) - (current_vertex.pos.w - current_component)));
+		  list_add(result, &v);
 		}
-		current_component *= component_factor;
-		bool current_inside = current_component <= current_vertex.pos.w;
-
-		if (current_inside ^ previous_inside) {
-			float lerp_factor = (previous_vertex.pos.w - previous_component) / ((previous_vertex.pos.w - previous_component) - (current_vertex.pos.w - current_component));
-			list_add(result, malloc_vertex(vertex_lerp(previous_vertex, current_vertex, lerp_factor)));
+	  if (current_inside) {
+	  	list_add(result, &current_vertex);
 		}
-
-		if (current_inside) {
-			list_add(result, vertices->array[i]);
-		}
-
-		previous_vertex = *(vertex_t *)vertices->array[i];
-		previous_component = current_component;
-		previous_inside = current_inside;
-	}
+  	previous_vertex = current_vertex;
+    previous_component = current_component;
+    previous_inside = current_inside;
+  }
 }
 
-void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
-	bool v1_inside = inside_view_frustum(v1);
-	bool v2_inside = inside_view_frustum(v2);
-	bool v3_inside = inside_view_frustum(v3);
+void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, const bitmap_t *texture) {
+	const bool v1_inside = inside_view_frustum(v1);
+	const bool v2_inside = inside_view_frustum(v2);
+	const bool v3_inside = inside_view_frustum(v3);
 
 	if (v1_inside && v2_inside && v3_inside) {
 		fill_triangle(v1, v2, v3, texture);
@@ -269,9 +255,7 @@ void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
 	list_add(vertices, &v2);
 	list_add(vertices, &v3);
 
-	if (clip_polygon_axis(vertices, auxillary_list, 0) &&
-			clip_polygon_axis(vertices, auxillary_list, 1) && 
-			clip_polygon_axis(vertices, auxillary_list, 2)) {
+	if (clip_polygon_axis(vertices, auxillary_list, 0) && clip_polygon_axis(vertices, auxillary_list, 1) && clip_polygon_axis(vertices, auxillary_list, 2)) {
 		vertex_t initial_vertex = *(vertex_t *)vertices->array[0];
 		for (size_t i = 1; i < vertices->length - 1; i++) {
 			fill_triangle(initial_vertex, *(vertex_t *)vertices->array[i], *(vertex_t *)vertices->array[i + 1], texture);
@@ -279,7 +263,7 @@ void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
 	}
 }
 
-void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
+void fill_triangle(const vertex_t v1, const vertex_t v2, const vertex_t v3, const bitmap_t *texture) {
 	matrix_t screen_space = init_screen_space_transform(columns * 0.5f, rows);
 	vertex_t min_y_vert = vertex_perspective_divide(vertex_transform(v1, screen_space));
 	vertex_t mid_y_vert = vertex_perspective_divide(vertex_transform(v2, screen_space));
@@ -310,7 +294,7 @@ void fill_triangle(vertex_t v1, vertex_t v2, vertex_t v3, bitmap_t *texture) {
 	scan_triangle(min_y_vert, mid_y_vert, max_y_vert, triangle_cross_product(min_y_vert, max_y_vert, mid_y_vert) >= 0, texture);
 }
 
-void draw_mesh(mesh_t *mesh, matrix_t transform, bitmap_t *texture) {
+void draw_mesh(const mesh_t *mesh, const matrix_t transform, const bitmap_t *texture) {
 	for (size_t i = 0; i < mesh->indices->length; i+=3) {
 		draw_triangle(
 				vertex_transform(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], transform),

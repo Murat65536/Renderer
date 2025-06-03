@@ -7,13 +7,12 @@
 #include "camera.h"
 #include "input.h"
 #include <time.h>
-#include <math.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <termios.h>
 
-int main() {
+int main(int argc, char **argv) {
 	init_display();
 
 	mesh_t *mesh = create_mesh("monkey1.obj");
@@ -30,7 +29,7 @@ int main() {
 	while (true) {
 		timespec_get(&ts, TIME_UTC);
 		start_time = (unsigned long long)ts.tv_sec * 1000000000 + (unsigned long long)ts.tv_nsec;
-		camera->projection = get_projection_matrix();
+		camera->projection = projection;
 		if (kbhit() && getch(camera, delta_time) == -1) {
 			break;
 		}

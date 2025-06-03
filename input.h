@@ -11,6 +11,6 @@ void input_init();
 
 bool kbhit();
 
-int getch(camera_t *camera, float delta_time);
+int getch(camera_t *camera, const float delta_time);
 
 #endif

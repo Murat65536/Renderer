@@ -45,7 +45,5 @@ void hashmap_add(hashmap_t *hashmap, void *key, void *value) {
 	hashmap->values[hashmap->length] = malloc(hashmap->value_size);
 	memcpy(hashmap->keys[hashmap->length], key, hashmap->key_size);
 	memcpy(hashmap->values[hashmap->length], value, hashmap->value_size);
-	//hashmap->keys[hashmap->length] = key;
-	//hashmap->values[hashmap->length] = value;
 	hashmap->length++;
 }

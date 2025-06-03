@@ -1,11 +1,11 @@
-CFLAGS = -lm -Wall -Wpedantic -Wextra -g3
+CFLAGS = -lm -Wall -Wpedantic -Wextra -O3 -fno-strict-aliasing -pg
 # -g3 flag for debug
 # -O3 for performance
 
 all: renderer
 
-renderer: main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o math.o quaternion.o transform.o camera.o input.o
-	gcc $(CFLAGS) main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o math.o quaternion.o transform.o camera.o input.o -o renderer
+renderer: main.o bitmap.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o math.o quaternion.o transform.o camera.o input.o
+	gcc $(CFLAGS) main.o bitmap.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o quaternion.o transform.o camera.o input.o -o renderer
 	chmod +x renderer
 
 main.o: main.c
@@ -13,12 +13,6 @@ main.o: main.c
 
 bitmap.o: bitmap.c
 	gcc $(CFLAGS) -c bitmap.c
-
-vector.o: vector.c
-	gcc $(CFLAGS) -c vector.c
-
-vertex.o: vertex.c
-	gcc $(CFLAGS) -c vertex.c
 
 gradients.o: gradients.c
 	gcc $(CFLAGS) -c gradients.c
@@ -50,9 +44,6 @@ lodepng.o: lodepng.c
 mesh.o: mesh.c
 	gcc $(CFLAGS) -c mesh.c
 
-math.o: math.c
-	gcc $(CFLAGS) -c math.c
-
 quaternion.o: quaternion.c
 	gcc $(CFLAGS) -c quaternion.c
 
@@ -66,4 +57,4 @@ input.o: input.c
 	gcc $(CFLAGS) -c input.c
 
 clean:
-	rm main.o bitmap.o vector.o vertex.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o math.o quaternion.o transform.o camera.o input.o renderer
+	rm main.o bitmap.o gradients.o edge.o matrix.o display.o list.o indexed_model.o obj_model.o hashmap.o lodepng.o mesh.o quaternion.o transform.o camera.o input.o renderer

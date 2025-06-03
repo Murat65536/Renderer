@@ -37,7 +37,7 @@ bool kbhit() {
 	return select(1, &fds, NULL, NULL, &tv) > 0;
 }
 
-int getch(camera_t *camera, float delta_time) {
+int getch(camera_t *camera, const float delta_time) {
 	unsigned char c;
 	const vector_t Y_AXIS = (vector_t) {0.f, 1.f, 0.f, 1.f};
 	const vector_t X_AXIS = (vector_t) {1.f, 0.f, 0.f, 1.f};
@@ -64,16 +64,16 @@ int getch(camera_t *camera, float delta_time) {
 			camera_move(camera, quaternion_down(camera->transform.rot), MOVEMENT_SPEED * delta_time);
 			break;
 		case 'i':
-			camera_rotate(camera, X_AXIS, -SENSITIVITY * delta_time);
-			break;
-		case 'j':
-			camera_rotate(camera, Y_AXIS, -SENSITIVITY * delta_time);
-			break;
-		case 'k':
 			camera_rotate(camera, X_AXIS, SENSITIVITY * delta_time);
 			break;
-		case 'l':
+		case 'j':
 			camera_rotate(camera, Y_AXIS, SENSITIVITY * delta_time);
+			break;
+		case 'k':
+			camera_rotate(camera, X_AXIS, -SENSITIVITY * delta_time);
+			break;
+		case 'l':
+			camera_rotate(camera, Y_AXIS, -SENSITIVITY * delta_time);
 			break;
 	}
 	return 0;

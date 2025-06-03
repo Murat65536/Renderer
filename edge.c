@@ -1,10 +1,10 @@
 #include "edge.h"
 #include <stdio.h>
-#include <math.h>
+#include "math.h"
 
 edge_t create_edge(gradients_t g, vertex_t min_y_vert, vertex_t max_y_vert, int min_y_vert_index) {
-	int y_start = (int)ceil(min_y_vert.pos.y);
-	int y_end = (int)ceil(max_y_vert.pos.y);
+	int y_start = _ceil(min_y_vert.pos.y);
+	int y_end = _ceil(max_y_vert.pos.y);
 
 	float y_dist = max_y_vert.pos.y - min_y_vert.pos.y;
 	float x_dist = max_y_vert.pos.x - min_y_vert.pos.x;
