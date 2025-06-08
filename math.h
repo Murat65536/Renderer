@@ -1,6 +1,6 @@
 #ifndef MATH_H_
 #define MATH_H_
-#include <immintrin.h>
+#include <stdbool.h>
 static const unsigned char _pow10[3] = {1, 10, 100};
 static inline float _min(float x, float y) {
   if (x < y) {

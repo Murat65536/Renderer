@@ -110,8 +110,8 @@ void plot_character(const unsigned int x, const unsigned int y, const wchar_t ch
 }
 
 void draw_scan_line(const gradients_t g, const edge_t *left, const edge_t *right, const int j, const bitmap_t *texture) {
-	const int x_min = (int)ceil(left->x);
-	const int x_max = (int)ceil(right->x);
+	const int x_min = _ceil(left->x);
+	const int x_max = _ceil(right->x);
 
 	const float x_prestep = x_min - left->x;
 	float tex_coord_x = left->tex_coord_x + g.tex_coord_xx_step * x_prestep;
@@ -127,7 +127,6 @@ void draw_scan_line(const gradients_t g, const edge_t *left, const edge_t *right
 			const float z = 1.f / one_over_z;
 			const int src_x = (int)((tex_coord_x * z) * (texture->width - 1) + 0.5f);
 			const int src_y = (int)((tex_coord_y * z) * (texture->height - 1) + 0.5f);
-      
 			plot_point(i, j, 
               ((unsigned char)(texture->colors[(src_y * texture->width + src_x) * 3 + 2] * light_amt) << 16) |
               ((unsigned char)(texture->colors[(src_y * texture->width + src_x) * 3 + 1] * light_amt) << 8) |
@@ -294,13 +293,13 @@ void fill_triangle(const vertex_t v1, const vertex_t v2, const vertex_t v3, cons
 	scan_triangle(min_y_vert, mid_y_vert, max_y_vert, triangle_cross_product(min_y_vert, max_y_vert, mid_y_vert) >= 0, texture);
 }
 
-void draw_mesh(const mesh_t *mesh, const matrix_t view_projection, const matrix_t transform, const bitmap_t *texture) {
-  matrix_t matrix_view_proj = multiply_matrices(view_projection, transform);
+void draw_mesh(const mesh_t *mesh, const matrix_t view_projection) {
+  const matrix_t matrix_view_proj = multiply_matrices(view_projection, mesh->projection);
 	for (size_t i = 0; i < mesh->indices->length; i+=3) {
 		draw_triangle(
-				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], matrix_view_proj, transform),
-				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]], matrix_view_proj, transform),
-				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]], matrix_view_proj, transform),
-				texture);
+				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i]], matrix_view_proj, mesh->projection),
+				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 1]], matrix_view_proj, mesh->projection),
+				vertex_transform_normal(*(vertex_t *)mesh->vertices->array[*(size_t *)mesh->indices->array[i + 2]], matrix_view_proj, mesh->projection),
+				mesh->texture);
 	}
 }

@@ -3,14 +3,15 @@
 #include "indexed_model.h"
 #include "obj_model.h"
 #include "vertex.h"
+#include "bitmap.h"
 #include <stddef.h>
 #include <stdlib.h>
 
-mesh_t *create_mesh(char *filename) {
+mesh_t *create_mesh(char *model_filename, bitmap_t *texture, matrix_t projection) {
 	mesh_t *mesh = malloc(sizeof(mesh_t));
 	mesh->indices = create_list(sizeof(vertex_t));
 	mesh->vertices = create_list(sizeof(vertex_t));
-	obj_model_t *obj_model = create_obj_model(filename);
+	obj_model_t *obj_model = create_obj_model(model_filename);
 	indexed_model_t *indexed_model = to_indexed_model(obj_model);
 	free_obj_model(obj_model);
 	for (size_t i = 0; i < indexed_model->positions->length; i++) {
@@ -21,11 +22,14 @@ mesh_t *create_mesh(char *filename) {
 		list_add(mesh->indices, indexed_model->indices->array[i]);
 	}
 	free_indexed_model(indexed_model);
+  mesh->texture = texture;
+  mesh->projection = projection;
 	return mesh;
 }
 
 void free_mesh(mesh_t *mesh) {
 	free_list(mesh->indices);
 	free_list(mesh->vertices);
+  free_bitmap(mesh->texture);
 	free(mesh);
 }

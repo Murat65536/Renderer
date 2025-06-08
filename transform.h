@@ -11,6 +11,8 @@ typedef struct {
 	vector_t scale;
 } transform_t;
 
+transform_t transform_pos(vector_t pos);
+
 transform_t transform_rotate(transform_t transform, quaternion_t rotation);
 
 transform_t transform_look_at(transform_t transform, vector_t point, vector_t up);

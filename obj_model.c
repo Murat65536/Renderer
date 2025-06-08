@@ -153,7 +153,7 @@ indexed_model_t *to_indexed_model(obj_model_t *model) {
 obj_index_t *parse_obj_index(obj_model_t *model, char *token) {
 	char *split_list[3];
 	char *str = strdup(token);
-	char *split = "";
+	char *split;
 	int i = -1;
 	while ((split = strsep(&str, "/")) && i < 2) {
 		if (strlen(split) > 0) {

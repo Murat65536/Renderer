@@ -2,6 +2,11 @@
 #include "quaternion.h"
 #include "vector.h"
 #include "matrix.h"
+#include "vector.h"
+
+transform_t transform_pos(vector_t pos) {
+  return (transform_t) {pos, {0.f, 0.f, 0.f, 1.f}, {1.f, 1.f, 1.f, 1.f}};
+}
 
 transform_t transform_rotate(transform_t transform, quaternion_t rotation) {
 	return (transform_t) {transform.pos, quaternion_normalize(quaternion_multiply_quaternion(transform.rot, rotation)), transform.scale};

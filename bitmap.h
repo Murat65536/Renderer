@@ -7,9 +7,7 @@ typedef struct {
 	unsigned char *colors;
 } bitmap_t;
 
-bitmap_t *create_bitmap(unsigned int width, unsigned int height);
-
-bitmap_t *create_bitmap_file(char *filename);
+bitmap_t *create_bitmap(char *filename);
 
 void free_bitmap(bitmap_t *bitmap);
 

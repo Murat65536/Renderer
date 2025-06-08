@@ -41,6 +41,6 @@ void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, const bitmap_t *textur
 
 void fill_triangle(const vertex_t v1, const vertex_t v2, const vertex_t v3, const bitmap_t *texture);
 
-void draw_mesh(const mesh_t *mesh, const matrix_t view_projection, const matrix_t transform, const bitmap_t *texture);
+void draw_mesh(const mesh_t *mesh, const matrix_t view_projection);
 
 #endif
