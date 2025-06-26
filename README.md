@@ -8,4 +8,4 @@ You can make yourself part of the `input` group like this:
 
 `sudo usermod -a -G input $(whoami)`
 
-After you make yourself part of the `input` group, log out and log back in.
+After you make yourself part of the `input` group, log out and log back in before running the program.
