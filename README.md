@@ -1,3 +1,5 @@
+### You really shouldn't run this program. It has quite a few memory leaks at the moment.
+
 A terminal-based 3d rendering engine. Uses ANSI escape codes to color the text.
 
 This only works on Linux.
