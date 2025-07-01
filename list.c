@@ -2,14 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_SIZE 16
+#define DEFAULT_INITIAL_SIZE 16
 
 list_t *create_list(size_t element_size) {
-	list_t *list;
-	list = malloc(sizeof(*list));
-	list->array = malloc(sizeof(void*) * INITIAL_SIZE);
+	list_t *list = malloc(sizeof(list_t));
+	list->array = malloc(sizeof(void*) * DEFAULT_INITIAL_SIZE);
 	list->length = 0;
-	list->capacity = INITIAL_SIZE;
+	list->capacity = DEFAULT_INITIAL_SIZE;
 	list->element_size = element_size;
 	return list;
 }

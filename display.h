@@ -11,6 +11,8 @@
 
 extern matrix_t projection;
 
+extern int log_fd;
+
 void queue_res_update(const int s);
 
 void res_update();

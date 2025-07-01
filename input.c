@@ -60,7 +60,7 @@ void input_init() {
 	tcsetattr(STDOUT_FILENO, TCSANOW, &new_termios);
 	atexit(reset_terminal_mode);
   at_quick_exit(reset_terminal_mode);
-  DIR * dir = opendir("/dev/input/");
+  DIR *dir = opendir("/dev/input/");
   if (!dir) {
     fprintf( stderr, "Failure to open any devices.\n(Do you lack permissions for the /dev/input/ directory?)");
     exit(1);

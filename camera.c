@@ -6,7 +6,13 @@
 #include "transform.h"
 
 #define MOVEMENT_SPEED 4.f
-#define SENSITIVITY 1.f
+#define SENSITIVITY 1.5f
+
+camera_t *create_camera() {
+  camera_t *camera = malloc(sizeof(camera_t));
+	camera->transform = (transform_t) {{0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f}, {1.f, 1.f, 1.f, 1.f}};
+  return camera;
+}
 
 matrix_t get_view_projection(camera_t *camera) {
 	matrix_t camera_rotation = quaternion_to_rotation_matrix(quaternion_conjugate(camera->transform.rot));

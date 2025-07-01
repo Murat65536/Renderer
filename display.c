@@ -17,6 +17,7 @@
 #include <wchar.h>
 #include <locale.h>
 #include <float.h>
+#include <fcntl.h>
 
 #define FOV 70.f
 
@@ -27,6 +28,7 @@ float *depth_buffer;
 
 matrix_t projection;
 
+int log_fd;
 
 bool update = true;
 
@@ -41,7 +43,7 @@ void res_update() {
 		ioctl(0, TIOCGWINSZ, &winsz);
 		columns = winsz.ws_col;
 		rows = winsz.ws_row;
-		projection = init_perspective(FOV * 180.f / 3.14159f, columns / rows * 0.5f, 0.1f, 1000.f);
+		projection = init_perspective(FOV * 180.f / 3.14159265358979f, columns / rows * 0.5f, 0.1f, 1000.f);
 		free(buffer);
 		free(clear_buffer);
 		buffer = malloc((columns * rows * 37 + 5) * sizeof(wchar_t));
@@ -58,6 +60,7 @@ void res_update() {
 }
 
 void init_display() {
+  log_fd = open("renderer.log", O_WRONLY | O_CREAT, S_IRWXU);
 	setlocale(LC_ALL, "");
 	res_update();
 	signal(SIGWINCH, queue_res_update);
@@ -80,14 +83,7 @@ void clear() {
 void plot_point(const unsigned int x, const unsigned int y, const unsigned int color) {
 	for (unsigned char i = 0; i < 3; i++) {
 		for (unsigned char digit = 0; digit < 3; digit++) {
-			char offset;
-			if (y % 2 == 0) {
-				offset = 9;
-			}
-			else {
-				offset = 26;
-			}
-			buffer[(y / 2 * columns + x) * 37 + 4 * i - digit + offset] = 48 + (color >> 8 * i & 0xff) / _pow10[digit] % 10;
+			buffer[(y / 2 * columns + x) * 37 + 4 * i - digit + (y % 2 == 0 ? 9 : 26)] = 48 + (color >> 8 * i & 0xff) / _pow10[digit] % 10;
 		}
 	}
 }
@@ -101,7 +97,7 @@ void plot_string(const unsigned int x, const unsigned int y, const wchar_t *str,
 void plot_character(const unsigned int x, const unsigned int y, const wchar_t character, const unsigned int foreground_color, const unsigned int background_color) {
 	for (unsigned char i = 0; i < 3; i++) {
 		for (unsigned char digit = 0; digit < 3; digit++) {
-			unsigned int position = (y * columns + x) * 37 + 4 * i - digit;
+			const unsigned int position = (y * columns + x) * 37 + 4 * i - digit;
 			buffer[position + 9] = 48 + (foreground_color >> 8 * i & 0xff) / _pow10[digit] % 10;
 			buffer[position + 26] = 48 + (background_color >> 8 * i & 0xff) / _pow10[digit] % 10;
 		}
@@ -118,7 +114,7 @@ void draw_scan_line(const gradients_t g, const edge_t *left, const edge_t *right
 	float tex_coord_y = left->tex_coord_y + g.tex_coord_yx_step * x_prestep;
 	float one_over_z = left->one_over_z + g.one_over_zx_step * x_prestep;
 	float depth = left->depth + g.depth_x_step * x_prestep;
-  float light_amt = left->light_amt + g.light_amt_x_step * x_prestep;
+    float light_amt = left->light_amt + g.light_amt_x_step * x_prestep;
 
 	for (int i = x_min; i < x_max; i++) {
 		const int index = i + j * columns;
@@ -174,15 +170,45 @@ void scan_triangle(const vertex_t min_y_vert, const vertex_t mid_y_vert, const v
 	scan_edges(g, &top_to_bottom, &middle_to_bottom, side, texture);
 }
 
-bool clip_polygon_axis(list_t *vertices, list_t *auxillary_list, const char component_index) {
-	clip_polygon_component(vertices, component_index, false, auxillary_list);
+bool clip_polygon(list_t *vertices) {
+  list_t *auxiliary_list = create_list(sizeof(vertex_t));
+	clip_polygon_component(vertices, 0, false, auxiliary_list);
 	list_clear(vertices);
-	if (auxillary_list->length == 0) {
-		return false;
+	if (auxiliary_list->length == 0) {
+        goto NoClip;
 	}
-	clip_polygon_component(auxillary_list, component_index, true, vertices);
-	list_clear(auxillary_list);
-	return vertices->length != 0;
+	clip_polygon_component(auxiliary_list, 0, true, vertices);
+	list_clear(auxiliary_list);
+    if (vertices->length == 0) {
+        goto NoClip;
+    }
+
+  clip_polygon_component(vertices, 1, false, auxiliary_list);
+	list_clear(vertices);
+	if (auxiliary_list->length == 0) {
+        goto NoClip;
+	}
+	clip_polygon_component(auxiliary_list, 1, true, vertices);
+	list_clear(auxiliary_list);
+    if (vertices->length == 0) {
+        goto NoClip;
+    }
+
+  clip_polygon_component(vertices, 2, false, auxiliary_list);
+	list_clear(vertices);
+	if (auxiliary_list->length == 0) {
+        goto NoClip;
+	}
+	clip_polygon_component(auxiliary_list, 2, true, vertices);
+	list_clear(auxiliary_list);
+	if (vertices->length == 0) {
+        goto NoClip;
+	}
+  free_list(auxiliary_list);
+  return true;
+NoClip:
+  free_list(auxiliary_list);
+  return false;
 }
 
 void clip_polygon_component(list_t *vertices, const char component_index, const bool negative, list_t *result) {
@@ -190,32 +216,32 @@ void clip_polygon_component(list_t *vertices, const char component_index, const 
   float previous_component;
   switch (component_index) {
     case 0:
-    previous_component = previous_vertex.pos.x;
-    break;
+      previous_component = previous_vertex.pos.x;
+      break;
     case 1:
-    previous_component = previous_vertex.pos.y;
-    break;
+      previous_component = previous_vertex.pos.y;
+      break;
     case 2:
-    previous_component = previous_vertex.pos.z;
-    break;
+      previous_component = previous_vertex.pos.z;
+      break;
   }
 	if (negative) {
     previous_component *= -1;
   }
 	bool previous_inside = previous_component <= previous_vertex.pos.w;
   for (size_t i = 0; i < vertices->length; i++) {
-	vertex_t current_vertex = *(vertex_t *)vertices->array[i];
+	  vertex_t current_vertex = *(vertex_t *)vertices->array[i];
     float current_component;
     switch (component_index) {
       case 0:
-      current_component = current_vertex.pos.x;
-      break;
+        current_component = current_vertex.pos.x;
+        break;
       case 1:
-      current_component = current_vertex.pos.y;
-      break;
+        current_component = current_vertex.pos.y;
+        break;
       case 2:
-      current_component = current_vertex.pos.z;
-      break;
+        current_component = current_vertex.pos.z;
+        break;
     }
 	  if (negative) {
       current_component *= -1;
@@ -226,9 +252,9 @@ void clip_polygon_component(list_t *vertices, const char component_index, const 
 		  list_add(result, &v);
 		}
 	  if (current_inside) {
-	  	list_add(result, &current_vertex);
-		}
-  	previous_vertex = current_vertex;
+	    list_add(result, &current_vertex);
+	  }
+    previous_vertex = current_vertex;
     previous_component = current_component;
     previous_inside = current_inside;
   }
@@ -248,13 +274,12 @@ void draw_triangle(vertex_t v1, vertex_t v2, vertex_t v3, const bitmap_t *textur
 	}
 
 	list_t *vertices = create_list(sizeof(vertex_t));
-	list_t *auxillary_list = create_list(sizeof(vertex_t));
 
 	list_add(vertices, &v1);
 	list_add(vertices, &v2);
 	list_add(vertices, &v3);
 
-	if (clip_polygon_axis(vertices, auxillary_list, 0) && clip_polygon_axis(vertices, auxillary_list, 1) && clip_polygon_axis(vertices, auxillary_list, 2)) {
+	if (clip_polygon(vertices)) {
 		vertex_t initial_vertex = *(vertex_t *)vertices->array[0];
 		for (size_t i = 1; i < vertices->length - 1; i++) {
 			fill_triangle(initial_vertex, *(vertex_t *)vertices->array[i], *(vertex_t *)vertices->array[i + 1], texture);

@@ -51,8 +51,8 @@ matrix_t init_matrix_translation(float x, float y, float z) {
 }
 
 matrix_t init_matrix_rotation_angle(float x, float y, float z, float angle) {
-	float sine = sinf(angle);
-	float cosine = cosf(angle);
+	float sine = _sin(angle);
+	float cosine = _cos(angle);
 
 	return (matrix_t) {{
 		cosine + x * x * (1.f - cosine),
@@ -77,19 +77,19 @@ matrix_t init_matrix_rotation_angle(float x, float y, float z, float angle) {
 matrix_t init_matrix_rotation(float x, float y, float z) {
 	matrix_t rx = {{
 		1.f, 0.f, 0.f, 0.f,
-		0.f, cosf(x), -sinf(x), 0.f,
-		0.f, sinf(x), cosf(x), 0,
+		0.f, _cos(x), -_sin(x), 0.f,
+		0.f, _sin(x), _cos(x), 0,
 		0.f, 0.f, 0.f, 1.f
 	}};
 	matrix_t ry = {{
-		cosf(y), 0.f, -sinf(y), 0.f,
+		_cos(y), 0.f, -_sin(y), 0.f,
 		0.f, 1.f, 0.f, 0.f,
-		sinf(y), 0.f, cosf(y), 0.f,
+		_sin(y), 0.f, _cos(y), 0.f,
 		0.f, 0.f, 0.f, 1.f
 	}};
 	matrix_t rz = {{
-		cosf(z), -sinf(z), 0.f, 0.f,
-		sinf(z), cosf(z), 0.f, 0.f,
+		_cos(z), -_sin(z), 0.f, 0.f,
+		_sin(z), _cos(z), 0.f, 0.f,
 		0.f, 0.f, 1.f, 0.f,
 		0.f, 0.f, 0.f, 1.f	
 	}};

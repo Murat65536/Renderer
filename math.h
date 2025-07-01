@@ -53,7 +53,7 @@ static inline float _sqrt(float x) {
   unsigned int i = *(unsigned int *) &x;
   i += 127 << 23;
   i >>=1;
-  return *(float *) &i;
+  return *(float *)&i;
 }
 static inline float _ma(float x, float y, float z) {
   if (x > y) {

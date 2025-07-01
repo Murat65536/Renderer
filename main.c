@@ -11,19 +11,20 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <termios.h>
+#include <fcntl.h>
 
 int main(int argc, char **argv) {
 	init_display();
 
-	mesh_t *mesh = create_mesh("smoothMonkey0.obj", create_bitmap("bricks.png"), init_matrix_translation(0.f, 0.f, 1.f));
+	mesh_t *mesh = create_mesh("smoothMonkey0.obj", create_bitmap("bricks.png"), init_matrix_translation(0.f, 0.f, 2.f));
 	mesh_t *terrain = create_mesh("terrain2.obj", create_bitmap("bricks2.png"), init_matrix_translation(0.f, -3.f, 0.f));
-	camera_t *camera = malloc(sizeof(camera_t));
-	camera->transform = (transform_t) {{0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f}, {1.f, 1.f, 1.f, 1.f}};
+	camera_t *camera = create_camera();
 	unsigned long long start_time, end_time = 0;
 	float delta_time = 1.f;
 	input_init();
 	struct timespec ts;
 	while (true) {
+    	//write(log_fd, "test\n\0", 6);
 		timespec_get(&ts, TIME_UTC);
 		start_time = (unsigned long long)ts.tv_sec * 1000000000 + (unsigned long long)ts.tv_nsec;
 		camera->projection = projection;
@@ -49,6 +50,7 @@ int main(int argc, char **argv) {
 		end_time = (unsigned long long)ts.tv_sec * 1000000000 + (unsigned long long)ts.tv_nsec;
 		delta_time = (end_time - start_time) * 0.000000001f;
 	}
+  close(log_fd);
   free_mesh(mesh);
   free_mesh(terrain);
 	free(camera);

@@ -9,6 +9,8 @@ typedef struct {
 	matrix_t projection;
 } camera_t;
 
+camera_t *create_camera();
+
 matrix_t get_view_projection(camera_t *camera);
 
 void camera_move(camera_t *camera, vector_t dir, float amount);

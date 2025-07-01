@@ -30,10 +30,10 @@ gradients_t create_gradient(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t m
 	g.depth[0] = min_y_vert.pos.z;
 	g.depth[1] = mid_y_vert.pos.z;
 	g.depth[2] = max_y_vert.pos.z;
-  vector_t light_dir = (vector_t) {0.f, 0.f, 1.f, 1.f};
-  g.light_amt[0] = _clamp(vector_dot_product(min_y_vert.normal, light_dir), 0.f, 1.f) * 0.9f + 0.1f;
-  g.light_amt[1] = _clamp(vector_dot_product(mid_y_vert.normal, light_dir), 0.f, 1.f) * 0.9f + 0.1f;
-  g.light_amt[2] = _clamp(vector_dot_product(max_y_vert.normal, light_dir), 0.f, 1.f) * 0.9f + 0.1f;
+	vector_t light_dir = (vector_t) {0.f, 0.f, 1.f, 1.f};
+	g.light_amt[0] = _clamp(vector_dot_product(min_y_vert.normal, light_dir), 0.f, 1.f) * 0.9f + 0.1f;
+	g.light_amt[1] = _clamp(vector_dot_product(mid_y_vert.normal, light_dir), 0.f, 1.f) * 0.9f + 0.1f;
+	g.light_amt[2] = _clamp(vector_dot_product(max_y_vert.normal, light_dir), 0.f, 1.f) * 0.9f + 0.1f;
 	g.tex_coord_xx_step = gradient_calc_x_step(g.tex_coord_x, min_y_vert, mid_y_vert, max_y_vert, one_over_dx);
 	g.tex_coord_xy_step = gradient_calc_y_step(g.tex_coord_x, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
 	g.tex_coord_yx_step = gradient_calc_x_step(g.tex_coord_y, min_y_vert, mid_y_vert, max_y_vert, one_over_dx);
@@ -42,7 +42,7 @@ gradients_t create_gradient(vertex_t min_y_vert, vertex_t mid_y_vert, vertex_t m
 	g.one_over_zy_step = gradient_calc_y_step(g.one_over_z, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
 	g.depth_x_step = gradient_calc_x_step(g.depth, min_y_vert, mid_y_vert, max_y_vert, one_over_dx);
 	g.depth_y_step = gradient_calc_y_step(g.depth, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
-  g.light_amt_x_step = gradient_calc_x_step(g.light_amt, min_y_vert, mid_y_vert, max_y_vert, one_over_dx);
-  g.light_amt_y_step = gradient_calc_y_step(g.light_amt, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
+	g.light_amt_x_step = gradient_calc_x_step(g.light_amt, min_y_vert, mid_y_vert, max_y_vert, one_over_dx);
+	g.light_amt_y_step = gradient_calc_y_step(g.light_amt, min_y_vert, mid_y_vert, max_y_vert, one_over_dy);
 	return g;
 }

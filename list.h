@@ -1,6 +1,7 @@
 #ifndef LIST_H_
 #define LIST_H_
 #include <stddef.h>
+#include "vector.h"
 
 typedef struct {
 	void **array;
