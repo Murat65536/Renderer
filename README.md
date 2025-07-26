@@ -6,6 +6,10 @@ This only works on Linux.
 
 You must either be a part of the `input` group or run the program with `sudo` for keyboard controls to work.
 
+You can check if you are in the `input` group like this:
+
+`groups $USER`
+
 You can make yourself part of the `input` group like this:
 
 `sudo usermod -a -G input $USER`
