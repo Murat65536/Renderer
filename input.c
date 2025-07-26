@@ -33,7 +33,7 @@ struct input_event ev[64];
 struct termios orig_termios;
 
 void reset_terminal_mode() {
-	printf("\x1b[0m\x1b[2J\x1b[?25h\x1b[8;100;200t\x1b[?1004l");
+	printf("\x1b[0m\x1b[2J\x1b[?25h\x1b[8;100;200t\x1b[?1004l\x1b[1049l");
 	tcsetattr(STDOUT_FILENO, TCSANOW, &orig_termios);
 }
 

@@ -123,7 +123,7 @@ matrix_t init_matrix_scale(float x, float y, float z) {
 }
 
 matrix_t init_perspective(float fov, float aspect_ratio, float near, float far) {
-	float tan_half_fov = tanf(fov / 2);
+	float tan_half_fov = _tan(fov / 2);
 	float range = near - far;
 
 	return (matrix_t) {{

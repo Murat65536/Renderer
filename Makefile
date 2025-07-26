@@ -1,4 +1,4 @@
-CFLAGS = -lm -Wall -Wpedantic -Wextra -g3 -fno-strict-aliasing
+CFLAGS = -Wall -Wpedantic -Wextra -fno-strict-aliasing
 # -g3 flag for debug
 # -O3 for performance
 

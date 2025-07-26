@@ -65,7 +65,7 @@ void init_display() {
 	res_update();
 	signal(SIGWINCH, queue_res_update);
 	
-	printf("\x1b[?25l");
+	fprintf(stdout, "\x1b[?25l\x1b[?1049h");
 }
 
 void render() {
