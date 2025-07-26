@@ -8,6 +8,6 @@ You must either be a part of the `input` group or run the program with `sudo` fo
 
 You can make yourself part of the `input` group like this:
 
-`sudo usermod -a -G input $(whoami)`
+`sudo usermod -a -G input $USER`
 
-After you make yourself part of the `input` group, log out and log back in before running the program.
+After you make yourself part of the `input` group, reboot before running the program.
