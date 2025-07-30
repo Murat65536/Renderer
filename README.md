@@ -12,6 +12,6 @@ You can check if you are in the `input` group like this:
 
 You can make yourself part of the `input` group like this:
 
-`sudo usermod -a -G input $USER`
+`sudo usermod -aG input $USER`
 
 After you make yourself part of the `input` group, reboot before running the program.
