@@ -5,6 +5,8 @@
 
 A terminal-based 3d rendering engine. Uses ANSI escape codes to color the text.
 
+Adapted from TheBennyBox
+
 This only works on Linux.
 
 You must either be a part of the `input` group or run the program with `sudo` for keyboard controls to work.
