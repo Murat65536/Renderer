@@ -5,7 +5,7 @@
 
 A terminal-based 3d rendering engine. Uses ANSI escape codes to color the text.
 
-Adapted from TheBennyBox
+Adapted from TheBennyBox.
 
 This only works on Linux.
 
